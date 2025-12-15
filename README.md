@@ -59,7 +59,7 @@ Volta is a modern, high-performance low-code platform built with React, TypeScri
 - `src/core`: Core logic (Rendering Engine, State Management, API Client).
 - `src/runtime`: The end-user runtime environment.
 - `src/designer`: The visual builder environment.
-- `voltaboard.config.ts`: Configuration for API endpoints and services.
+- `src/voltaboard.config.ts`: Configuration for API endpoints and services.
 
 ## 📚 Documentation
 

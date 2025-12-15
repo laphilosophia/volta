@@ -27,8 +27,8 @@ Thank you for your interest in contributing! We welcome contributions from every
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/your-username/project-name.git
-   cd project-name
+   git clone https://github.com/laphilosophia/volta.git
+   cd volta
    ```
 
 2. **Install dependencies**

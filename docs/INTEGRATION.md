@@ -43,7 +43,7 @@ Volta allows you to register your own React components to be used in the Designe
 
 ## Configuring APIs
 
-Volta connects to your backend via the `voltaboard.config.ts` file.
+Volta connects to your backend via the `src/voltaboard.config.ts` file.
 
 1.  **Define a Service**:
     A service represents a base URL (e.g., your backend API).
