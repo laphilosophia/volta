@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, type DefaultValues, type Path } from 'react-hook-form';
 import { z } from 'zod';
 import { useVoltaMutation } from '../../../hooks/useVoltaMutation';
 
-interface ActionFormProps<T extends z.ZodType> {
+interface ActionFormProps<T extends z.ZodObject<z.ZodRawShape>> {
   endpoint: string;
   schema: T;
   defaultValues?: Partial<z.infer<T>>;
@@ -11,7 +11,7 @@ interface ActionFormProps<T extends z.ZodType> {
   title?: string;
 }
 
-export function ActionForm<T extends z.ZodType>({
+export function ActionForm<T extends z.ZodObject<z.ZodRawShape>>({
   endpoint,
   schema,
   defaultValues,
@@ -20,14 +20,16 @@ export function ActionForm<T extends z.ZodType>({
 }: ActionFormProps<T>) {
   type FormData = z.infer<T>;
 
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({
-    resolver: zodResolver(schema),
-    defaultValues: defaultValues as any,
+    resolver: zodResolver(schema as any),
+    defaultValues: defaultValues as DefaultValues<FormData>,
   });
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   const mutation = useVoltaMutation<unknown, FormData>(endpoint, {
     onSuccess: (data) => {
@@ -38,7 +40,7 @@ export function ActionForm<T extends z.ZodType>({
   // Simple field generation based on schema shape (naive implementation for demo)
   // In a real world scenario, we would parse the Zod schema more robustly or use a 'fields' prop.
   // For this prototype, we'll assume the schema is a simple ZodObject.
-  const shape = (schema as any).shape || {};
+  const shape = schema.shape;
 
   return (
     <div className="p-6 border border-(--color-border) rounded-lg bg-(--color-surface)">
@@ -57,7 +59,9 @@ export function ActionForm<T extends z.ZodType>({
       )}
 
       <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
-        {Object.keys(shape).map((fieldName) => {
+        {Object.keys(shape).map((key) => {
+          const fieldName = key as Path<FormData>;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const fieldError = (errors as any)[fieldName];
           return (
             <div key={fieldName}>
@@ -65,7 +69,7 @@ export function ActionForm<T extends z.ZodType>({
                 {fieldName}
               </label>
               <input
-                {...register(fieldName as any)}
+                {...register(fieldName)}
                 className={`
                             w-full px-3 py-2 rounded-md border bg-(--color-background) text-(--color-text-primary)
                             focus:ring-2 focus:ring-(--color-primary) focus:border-transparent outline-none transition-all

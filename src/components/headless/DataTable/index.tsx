@@ -24,6 +24,7 @@ export function HeadlessDataTable<T>({ endpoint, columns, params, onRowClick }: 
 
   const { data, isLoading, error } = useVoltaQuery<T[]>(endpoint, params);
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: data || [],
     columns,
