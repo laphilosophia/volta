@@ -1,7 +1,7 @@
 {
   "name": "volta",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.1",
   "description": "Volta is a modern, high-performance low-code platform built with React, TypeScript, and Tailwind CSS. It empowers developers to create dynamic, metadata-driven applications with a powerful visual designer and a robust runtime engine.",
   "keywords": [
     "low-code",
