@@ -7,7 +7,8 @@ Volta is a modern, high-performance low-code platform built with React, TypeScri
 - **Visual Designer**: Drag-and-drop interface for building pages and layouts with **Undo/Redo and History Log**.
 - **Metadata-Driven**: All components and pages are defined by JSON metadata, making them portable and versionable.
 - **Dynamic Runtime**: A lightweight rendering engine that interprets metadata to render the final application.
-- **Headless Integration**: Connect to any API, database, or static data source seamlessly.
+- **Headless UI**: Core business logic is decoupled from presentation using headless components (`src/components/headless`).
+- **Data Integration**: Connect to any API, database, or static data source seamlessly.
 - **Component Registry**: Extensible architecture to add custom React components.
 - **Theming Engine**: Built-in support for dark mode, localization (i18n), and custom branding.
 - **Developer Tools**: Integrated **Storybook** for component development and **Vitest** for testing.
@@ -52,7 +53,7 @@ Volta is a modern, high-performance low-code platform built with React, TypeScri
 
 ## 📂 Project Structure
 
-- `src/components`: React components (Designer, Predefined UI elements).
+- `src/components`: React components including **Headless**, **Designer**, and **Predefined** UI elements.
 - `src/core`: Core logic (Rendering Engine, State Management, API Client).
 - `src/runtime`: The end-user runtime environment.
 - `src/designer`: The visual builder environment.
