@@ -3,6 +3,7 @@
 // ============================================================================
 
 import React, { Suspense, memo } from 'react';
+import { useVoltaQuery } from '../../hooks/useVoltaQuery';
 import { componentRegistry } from '../component-registry';
 import type { ComponentMetadata, PageMetadata } from '../types';
 
@@ -54,6 +55,45 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({ componentId, error, onRet
 );
 
 // ============================================================================
+// Data Fetching Wrapper
+// ============================================================================
+
+interface DataWrapperProps {
+  metadata: ComponentMetadata;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Component: React.ComponentType<any>;
+}
+
+const DataWrapper: React.FC<DataWrapperProps> = ({ metadata, Component }) => {
+  const { dataSource } = metadata;
+
+  // Use hook unconditionally - simply skip if not api type
+  const isApi = dataSource?.type === 'api' && !!dataSource.endpoint;
+  const endpoint = isApi ? dataSource.endpoint! : '';
+
+  // We pass enabled: isApi to ensure query only runs when valid
+  const { data, isLoading, error } = useVoltaQuery(endpoint, {}, {
+    enabled: isApi
+  });
+
+  // Inject data props if API source is active
+  const injectedProps = isApi ? {
+    data: data,
+    isLoading: isLoading,
+    error: error,
+    ...metadata.props
+  } : metadata.props;
+
+  return (
+    <Component
+      {...injectedProps}
+      dataSource={dataSource}
+      componentId={metadata.id}
+    />
+  );
+};
+
+// ============================================================================
 // Dynamic Component Renderer
 // ============================================================================
 
@@ -99,11 +139,8 @@ export const DynamicRenderer: React.FC<DynamicRendererProps> = memo(({ metadata,
           onError?.(metadata.id, err);
         }}
       >
-        <Component
-          {...metadata.props}
-          dataSource={metadata.dataSource}
-          componentId={metadata.id}
-        />
+        {/* Use DataWrapper to handle hooks logic */}
+        <DataWrapper metadata={metadata} Component={Component} />
       </ComponentErrorBoundary>
     </Suspense>
   );

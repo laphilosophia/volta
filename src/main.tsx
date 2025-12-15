@@ -5,10 +5,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { initApiClient } from './core/api/client';
 import './core/i18n/config';
 import { useTenantStore } from './core/state-management';
 import { themeManager } from './core/theme-engine';
 import './index.css';
+import { voltaConfig } from './voltaboard.config';
 
 /**
  * Bootstrap the application:
@@ -31,6 +33,10 @@ async function bootstrap() {
       tenantId = subdomain;
     }
   }
+
+  // Initialize API Client
+  console.log('🔌 Initializing Headless API Client...');
+  initApiClient(voltaConfig);
 
   console.log(`📦 Loading tenant: ${tenantId}`);
 
