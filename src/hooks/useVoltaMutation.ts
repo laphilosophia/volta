@@ -16,17 +16,19 @@ export function useVoltaMutation<TData = unknown, TVariables = unknown>(
       if (!apiClient) {
         throw new Error('ApiClient not initialized. Call initApiClient(config) at app startup.')
       }
-      // Assuming variables object contains both params and body.
-      // For simplicity in this generic hook, we'll treat 'variables' as the body
-      // unless it has a special structure we define later.
-      // For REST POST/PUT, variables usually equals body.
-      // If we need path params for mutation (like PUT /posts/:id), we might need a convention.
-      // Convention: variables = { ...body, _params: { id: 1 } } ?
-      // OR mostly, standard mutations use body. Path params might be embedded or passed differently.
-
-      // Let's check if variables has mixed content or simple body.
-      // For now, we will treat variables as BODY.
-      // TODO: Improve to separate params and body if needed.
+      /*
+        TODO: Improve to separate params and body if needed.
+        Description:
+          Assuming variables object contains both params and body.
+          For simplicity in this generic hook, we'll treat 'variables' as the body
+          unless it has a special structure we define later.
+          For REST POST/PUT, variables usually equals body.
+          If we need path params for mutation (like PUT /posts/:id), we might need a convention.
+          Convention: variables = { ...body, _params: { id: 1 } } ?
+          OR mostly, standard mutations use body. Path params might be embedded or passed differently.
+          Let's check if variables has mixed content or simple body.
+          For now, we will treat variables as BODY.
+      */
 
       return apiClient.request<TData>(endpointKey, undefined, variables)
     },

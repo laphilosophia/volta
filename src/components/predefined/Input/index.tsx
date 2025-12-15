@@ -94,7 +94,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block mb-1.5 text-sm font-medium text-[var(--color-text-primary)]"
+            className="block mb-1.5 text-sm font-medium text-(--color-text-primary)"
           >
             {label}
             {required && (
@@ -112,7 +112,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             <span
               className={`
                 absolute left-3 top-1/2 -translate-y-1/2
-                text-[var(--color-text-muted)]
+                text-(--color-text-muted)
                 ${iconSizes[size]}
               `}
             >
@@ -131,8 +131,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             aria-describedby={hasError ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
             className={`
               w-full rounded-xs
-              text-[var(--color-text-primary)]
-              placeholder-[var(--color-text-muted)]
+              text-(--color-text-primary)
+              placeholder-(--color-text-muted)
               transition-all duration-200
               outline-none
               disabled:opacity-50 disabled:cursor-not-allowed
@@ -150,7 +150,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             <span
               className={`
                 absolute right-3 top-1/2 -translate-y-1/2
-                text-[var(--color-text-muted)]
+                text-(--color-text-muted)
                 ${iconSizes[size]}
               `}
             >
@@ -158,7 +158,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="p-0.5 hover:text-[var(--color-text-secondary)] transition-colors"
+                  className="p-0.5 hover:text-(--color-text-secondary) transition-colors"
                   tabIndex={-1}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
@@ -191,7 +191,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         {hint && !hasError && (
           <p
             id={`${inputId}-hint`}
-            className="mt-1.5 text-sm text-[var(--color-text-muted)]"
+            className="mt-1.5 text-sm text-(--color-text-muted)"
           >
             {hint}
           </p>

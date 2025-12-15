@@ -1,3 +1,5 @@
+[![Volta](/docs/assets/banner.png)](https://github.com/laphilosophia/volta)
+
 # Volta - High-Performance Low-Code Platform
 
 Volta is a modern, high-performance low-code platform built with React, TypeScript, and Tailwind CSS. It empowers developers to create dynamic, metadata-driven applications with a powerful visual designer and a robust runtime engine.

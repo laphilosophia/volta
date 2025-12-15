@@ -1,8 +1,6 @@
 // ============================================================================
 // Designer - Low-Code Dashboard Builder with Layouts & Data Binding
 // ============================================================================
-// Modular architecture with SINGLE global drag-and-drop context
-// Handles both palette drops AND zone reordering
 
 import {
   closestCenter,
@@ -111,12 +109,12 @@ const Designer: React.FC = () => {
     pasteComponent,
     setZoom,
     toggleGrid,
-    setLayout, // New action
-    addComponent, // New action
-    reorderComponent, // New action
-    updateComponentProps, // New action
-    updateComponentDataSource, // New action
-    deleteComponent, // New action
+    setLayout,
+    addComponent,
+    reorderComponent,
+    updateComponentProps,
+    updateComponentDataSource,
+    deleteComponent,
     setDirty,
   } = useDesignerStore()
 

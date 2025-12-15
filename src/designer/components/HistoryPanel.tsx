@@ -8,7 +8,6 @@ import { useStore } from 'zustand'
 import { useDesignerStore } from '../../core'
 
 export const HistoryPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  // Access Zundo temporal store
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const temporal = (useDesignerStore as any).temporal
   const { pastStates, futureStates, jump } = useStore(temporal) as {
@@ -16,34 +15,12 @@ export const HistoryPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => 
     futureStates: { actionDescription: string }[]
     jump: (delta: number) => void
   }
-
-  // Access current action description from main store (not temporal)
-  // We need to know what the *current* state represents.
-  // Actually, pastStates contains the *previous* states.
-  // The current state is "Present".
-  // We can show the list combined.
-
-  // Zundo structure:
-  // pastStates: [{ currentLayout: ..., actionDescription: "..." }, ...]
-
   const handleJumpToPast = (index: number) => {
-    // Jump back: negative index relative to now.
-    // pastStates[0] is the oldest. pastStates[length-1] is the most recent past.
-    // To jump to pastStates[i], we need to undo (pastStates.length - i) times.
-    // Or zundo 'jump' might allow jumping to specific index?
-    // zundo 'jump' takes a delta.
-    // If I want to go to the state at index `i` of `pastStates`, I need to jump `(i - pastStates.length)`.
-    // Example: past=[A, B], current=C. length=2.
-    // Want to go to A (index 0). Delta = 0 - 2 = -2.
-    // Want to go to B (index 1). Delta = 1 - 2 = -1.
-
     const delta = index - pastStates.length
     jump(delta)
   }
 
   const handleJumpToFuture = (index: number) => {
-    // futureStates[0] is the immediate future (next redo).
-    // To jump to futureStates[i], we jump `i + 1`.
     jump(index + 1)
   }
 

@@ -1,7 +1,6 @@
 // ============================================================================
 // Property Inspector V2 - Component Properties Editor with Tabs
 // ============================================================================
-// Now shows ALL properties from schema, not just existing props
 
 import { Copy, Database, Settings, Sliders, Trash2 } from 'lucide-react'
 import React, { useState } from 'react'

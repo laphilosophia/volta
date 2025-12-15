@@ -1,5 +1,5 @@
 // ============================================================================
-// Core Types - CRM Platform
+// Core Types - Volta
 // ============================================================================
 
 import type { DataSourceConfig, LayoutTemplate } from './types/layout'

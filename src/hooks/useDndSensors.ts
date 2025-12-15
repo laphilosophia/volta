@@ -6,8 +6,7 @@ import { KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/c
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 
 /**
- * Custom hook to provide consistent DnD sensors across the application.
- * This prevents code duplication and ensures uniform drag behavior.
+ * Provides consistent DnD sensors for use with DndContext.
  *
  * @returns Configured DnD sensors for use with DndContext
  */

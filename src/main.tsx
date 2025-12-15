@@ -20,7 +20,7 @@ import { voltaConfig } from './voltaboard.config';
  * 4. Render the app
  */
 async function bootstrap() {
-  console.log('🚀 CRM Platform starting...');
+  console.log('🚀 Volta starting...');
 
   // Extract tenant ID from subdomain (e.g., acme.yourapp.com → acme)
   // In development, default to 'default' tenant
@@ -66,7 +66,7 @@ async function bootstrap() {
     </React.StrictMode>
   );
 
-  console.log('✅ CRM Platform ready');
+  console.log('✅ Volta ready');
 }
 
 // Start bootstrap

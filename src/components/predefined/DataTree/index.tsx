@@ -89,8 +89,8 @@ const DataTree: React.FC<DataTreeProps> = ({
             className={`
               flex items-center gap-2 py-1.5 px-2 rounded-md cursor-pointer
               transition-colors duration-150
-              hover:bg-[var(--color-surface-hover)]
-              ${isSelected ? 'bg-[var(--color-primary-light)] text-[var(--color-primary)]' : ''}
+              hover:bg-(--color-surface-hover)
+              ${isSelected ? 'bg-(--color-primary-light) text-(--color-primary)' : ''}
             `}
             style={{ paddingLeft: `${level * 1.25 + 0.5}rem` }}
             onClick={() => {
@@ -101,16 +101,16 @@ const DataTree: React.FC<DataTreeProps> = ({
             {/* Expand/Collapse Icon */}
             {hasChildren ? (
               <button
-                className="p-0.5 hover:bg-[var(--color-surface-hover)] rounded transition-transform duration-200"
+                className="p-0.5 hover:bg-(--color-surface-hover) rounded transition-transform duration-200"
                 onClick={(e) => {
                   e.stopPropagation();
                   toggleExpand(node.id);
                 }}
               >
                 {isExpanded ? (
-                  <ChevronDown className="w-4 h-4 text-[var(--color-text-secondary)]" />
+                  <ChevronDown className="w-4 h-4 text-(--color-text-secondary)" />
                 ) : (
-                  <ChevronRight className="w-4 h-4 text-[var(--color-text-secondary)]" />
+                  <ChevronRight className="w-4 h-4 text-(--color-text-secondary)" />
                 )}
               </button>
             ) : (
@@ -119,19 +119,19 @@ const DataTree: React.FC<DataTreeProps> = ({
 
             {/* Node Icon */}
             {node.icon === 'file' ? (
-              <File className="w-4 h-4 text-[var(--color-text-muted)]" />
+              <File className="w-4 h-4 text-(--color-text-muted)" />
             ) : hasChildren ? (
               isExpanded ? (
-                <FolderOpen className="w-4 h-4 text-[var(--color-accent)]" />
+                <FolderOpen className="w-4 h-4 text-(--color-accent)" />
               ) : (
-                <Folder className="w-4 h-4 text-[var(--color-accent)]" />
+                <Folder className="w-4 h-4 text-(--color-accent)" />
               )
             ) : (
-              <File className="w-4 h-4 text-[var(--color-text-muted)]" />
+              <File className="w-4 h-4 text-(--color-text-muted)" />
             )}
 
             {/* Node Label */}
-            <span className="text-sm text-[var(--color-text-primary)]">
+            <span className="text-sm text-(--color-text-primary)">
               {node.label}
             </span>
           </div>
@@ -151,8 +151,8 @@ const DataTree: React.FC<DataTreeProps> = ({
 
   if (data.length === 0) {
     return (
-      <div className="p-4 rounded-xs border border-[var(--color-border)] bg-[var(--color-surface)]">
-        <p className="text-sm text-[var(--color-text-muted)] text-center">
+      <div className="p-4 rounded-xs border border-(--color-border) bg-(--color-surface)">
+        <p className="text-sm text-(--color-text-muted) text-center">
           {t('dataTree.noData')}
         </p>
       </div>
@@ -160,24 +160,24 @@ const DataTree: React.FC<DataTreeProps> = ({
   }
 
   return (
-    <div className="rounded-xs border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden">
+    <div className="rounded-xs border border-(--color-border) bg-(--color-surface) overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface-hover)]">
-        <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-(--color-border) bg-(--color-surface-hover)">
+        <h3 className="text-sm font-semibold text-(--color-text-primary)">
           {t('dataTree.title')}
         </h3>
         {expandable && (
           <div className="flex gap-2">
             <button
               onClick={expandAll}
-              className="text-xs text-[var(--color-primary)] hover:underline"
+              className="text-xs text-(--color-primary) hover:underline"
             >
               {t('dataTree.expand')}
             </button>
-            <span className="text-[var(--color-text-muted)]">|</span>
+            <span className="text-(--color-text-muted)">|</span>
             <button
               onClick={collapseAll}
-              className="text-xs text-[var(--color-primary)] hover:underline"
+              className="text-xs text-(--color-primary) hover:underline"
             >
               {t('dataTree.collapse')}
             </button>

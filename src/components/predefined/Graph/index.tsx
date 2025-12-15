@@ -2,10 +2,8 @@
 // Graph Component (Using Apache ECharts)
 // ============================================================================
 
-// Graph component content changes
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-// Removed static import * as echarts from 'echarts';
 
 type ChartType = 'line' | 'bar' | 'pie' | 'area';
 
@@ -33,7 +31,6 @@ interface GraphProps {
 }
 
 const Graph: React.FC<GraphProps> = ({
-  // ... props
   chartType = 'line',
   data = [],
   title,
@@ -46,19 +43,9 @@ const Graph: React.FC<GraphProps> = ({
 }) => {
   const { t } = useTranslation('components');
   const chartRef = useRef<HTMLDivElement>(null);
-  // Type as any or specific EChartsType if available globally, but simple reference is enough
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const chartInstance = useRef<any>(null);
-
-  // ... (options memoization remains the same, but we need EChartsOption type.
-  // Since we remove import, we might need 'any' or import type only.)
-  // Actually, let's keep `import type { EChartsOption } from 'echarts';` if possible,
-  // or just use `any` for options to strictly avoid runtime bundle inclusion.
-
-  // Let's use `import type` to be safe for types, but no value import.
-
   const options = useMemo(() => {
-    // ... options logic (same as before)
     const colors = [
       'var(--color-primary)',
       'var(--color-secondary)',
@@ -69,7 +56,6 @@ const Graph: React.FC<GraphProps> = ({
     ];
 
     const baseOptions = {
-      // ...
       animation: animated,
       animationDuration: 500,
       tooltip: {

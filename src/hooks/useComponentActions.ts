@@ -37,8 +37,7 @@ interface UseComponentActionsReturn {
 }
 
 /**
- * Custom hook providing common component operations for the designer.
- * Reduces code duplication between Designer and DesignerV2.
+ * Provides common component operations for the designer.
  */
 export function useComponentActions({
   onAddComponent,

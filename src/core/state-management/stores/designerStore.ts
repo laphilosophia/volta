@@ -84,10 +84,6 @@ export const useDesignerStore = create<DesignerStore>()(
         // Layout Actions (Tracked by Zundo)
         // ====================================================================
 
-        // ====================================================================
-        // Layout Actions (Tracked by Zundo)
-        // ====================================================================
-
         setLayout: (layout: LayoutTemplate, description = 'Changed Layout') =>
           set(
             {

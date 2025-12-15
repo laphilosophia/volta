@@ -1,7 +1,7 @@
 // ============================================================================
 // Layout Canvas Component - Renders zones with drag-and-drop support
 // ============================================================================
-// Now handles 'preview' mode correctly (readonly, no DnD)
+// 'preview' mode (readonly, no DnD)
 
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'

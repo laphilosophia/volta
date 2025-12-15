@@ -35,7 +35,7 @@ interface UseLayoutZonesReturn {
 }
 
 /**
- * Custom hook to manage layout zones and their components.
+ * Manage layout zones and their components.
  * Provides utility functions for common zone operations.
  */
 export function useLayoutZones({

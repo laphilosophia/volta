@@ -32,7 +32,7 @@ export default i18n
 // Load fallback translations for development
 i18n.addResourceBundle('en', 'common', {
   app: {
-    name: 'CRM Platform',
+    name: 'Volta',
     loading: 'Loading...',
     error: 'An error occurred',
   },
@@ -64,7 +64,7 @@ i18n.addResourceBundle('en', 'common', {
 
 i18n.addResourceBundle('tr', 'common', {
   app: {
-    name: 'CRM Platformu',
+    name: 'Voltau',
     loading: 'Yükleniyor...',
     error: 'Bir hata oluştu',
   },

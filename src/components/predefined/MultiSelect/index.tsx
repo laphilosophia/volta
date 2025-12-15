@@ -108,10 +108,10 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
           w-full min-h-[42px] px-3 py-2 rounded-xs border text-left
           flex items-center justify-between gap-2
           transition-all duration-200
-          bg-[var(--color-surface)]
-          border-[var(--color-border)]
-          focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent
-          ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-[var(--color-primary)]'}
+          bg-(--color-surface)
+          border-(--color-border)
+          focus:outline-none focus:ring-2 focus:ring-(--color-primary) focus:border-transparent
+          ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-(--color-primary)'}
         `}
       >
         <div className="flex-1 flex flex-wrap gap-1">
@@ -121,22 +121,22 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                 <span
                   key={value[idx]}
                   className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full
-                    bg-[var(--color-primary-light)] text-[var(--color-primary)]"
+                    bg-(--color-primary-light) text-(--color-primary)"
                 >
                   {label}
                   <X
-                    className="w-3 h-3 cursor-pointer hover:text-[var(--color-primary-dark)]"
+                    className="w-3 h-3 cursor-pointer hover:text-(--color-primary-dark)"
                     onClick={(e) => handleRemove(value[idx], e)}
                   />
                 </span>
               ))
             ) : (
-              <span className="text-sm text-[var(--color-text-primary)]">
+              <span className="text-sm text-(--color-text-primary)">
                 {selectedLabels[0]}
               </span>
             )
           ) : (
-            <span className="text-sm text-[var(--color-text-muted)]">
+            <span className="text-sm text-(--color-text-muted)">
               {placeholder || t('multiSelect.placeholder')}
             </span>
           )}
@@ -145,12 +145,12 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
         <div className="flex items-center gap-1">
           {value.length > 0 && (
             <X
-              className="w-4 h-4 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] cursor-pointer"
+              className="w-4 h-4 text-(--color-text-muted) hover:text-(--color-text-primary) cursor-pointer"
               onClick={handleClear}
             />
           )}
           <ChevronDown
-            className={`w-4 h-4 text-[var(--color-text-muted)] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''
+            className={`w-4 h-4 text-(--color-text-muted) transition-transform duration-200 ${isOpen ? 'rotate-180' : ''
               }`}
           />
         </div>
@@ -158,12 +158,12 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 rounded-xs border border-[var(--color-border)] bg-[var(--color-surface)] shadow-lg animate-fadeIn">
+        <div className="absolute z-50 w-full mt-1 rounded-xs border border-(--color-border) bg-(--color-surface) shadow-lg animate-fadeIn">
           {/* Search Input */}
           {searchable && (
-            <div className="p-2 border-b border-[var(--color-border)]">
+            <div className="p-2 border-b border-(--color-border)">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-(--color-text-muted)" />
                 <input
                   ref={inputRef}
                   type="text"
@@ -171,10 +171,10 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder={t('multiSelect.searchPlaceholder')}
                   className="w-full pl-9 pr-3 py-2 text-sm rounded-md
-                    bg-[var(--color-surface-hover)]
-                    text-[var(--color-text-primary)]
-                    placeholder-[var(--color-text-muted)]
-                    focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                    bg-(--color-surface-hover)
+                    text-(--color-text-primary)
+                    placeholder-(--color-text-muted)
+                    focus:outline-none focus:ring-2 focus:ring-(--color-primary)"
                 />
               </div>
             </div>
@@ -198,8 +198,8 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                       transition-colors duration-150
                       ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                       ${isSelected
-                        ? 'bg-[var(--color-primary-light)] text-[var(--color-primary)]'
-                        : 'hover:bg-[var(--color-surface-hover)] text-[var(--color-text-primary)]'}
+                        ? 'bg-(--color-primary-light) text-(--color-primary)'
+                        : 'hover:bg-(--color-surface-hover) text-(--color-text-primary)'}
                     `}
                   >
                     {multiple && (
@@ -208,8 +208,8 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                           w-4 h-4 rounded border flex items-center justify-center
                           transition-colors duration-150
                           ${isSelected
-                            ? 'bg-[var(--color-primary)] border-[var(--color-primary)]'
-                            : 'border-[var(--color-border)]'}
+                            ? 'bg-(--color-primary) border-(--color-primary)'
+                            : 'border-(--color-border)'}
                         `}
                       >
                         {isSelected && <Check className="w-3 h-3 text-white" />}
@@ -220,7 +220,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                 );
               })
             ) : (
-              <p className="px-3 py-2 text-sm text-[var(--color-text-muted)] text-center">
+              <p className="px-3 py-2 text-sm text-(--color-text-muted) text-center">
                 {t('multiSelect.noOptions')}
               </p>
             )}
@@ -228,7 +228,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
 
           {/* Selected Count */}
           {multiple && value.length > 0 && (
-            <div className="px-3 py-2 border-t border-[var(--color-border)] text-xs text-[var(--color-text-muted)]">
+            <div className="px-3 py-2 border-t border-(--color-border) text-xs text-(--color-text-muted)">
               {t('multiSelect.selected', { count: value.length })}
             </div>
           )}

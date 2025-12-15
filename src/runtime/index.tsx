@@ -68,14 +68,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, currentPage, onNavi
       {/* Logo */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-(--color-border)">
         {isOpen && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             {theme?.logo ? (
-              <img src={theme.logo} alt="Logo" className="h-8 w-8 object-contain" />
+              <img src={theme.logo} alt="Logo" className="h-8 w-8 object-contain text-(--color-text-primary)" />
             ) : (
               <div className="w-8 h-8 rounded-xs gradient-primary" />
             )}
-            <span className="font-semibold text-(--color-text-primary)">
-              CRM Platform
+            <span className="text-xl font-semibold text-(--color-text-primary)">
+              Volta
             </span>
           </div>
         )}
