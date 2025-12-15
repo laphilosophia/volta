@@ -2,21 +2,25 @@
 // Designer Store - Dashboard Builder State
 // ============================================================================
 
+import { temporal } from 'zundo'
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
-import type { ComponentMetadata } from '../../types'
+import type { ComponentMetadata, DataSourceConfig, LayoutTemplate } from '../../types'
+import { layoutTemplates, type LayoutZone } from '../../types/layout'
+
+// Helper to clone objects
+const clone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj))
 
 interface DesignerState {
+  // Global Layout State (Moved from Designer.tsx)
+  currentLayout: LayoutTemplate
+  actionDescription: string // For History Panel
+
+  // Designer UX State
   mode: 'edit' | 'preview'
   selectedComponent: string | null
   hoveredComponent: string | null
   clipboard: ComponentMetadata | null
-  history: Array<{
-    action: string
-    state: unknown
-    timestamp: number
-  }>
-  historyIndex: number
   isDirty: boolean
   zoom: number
   gridEnabled: boolean
@@ -24,17 +28,27 @@ interface DesignerState {
 }
 
 interface DesignerActions {
+  // Metadata / Layout Actions
+  setLayout: (layout: LayoutTemplate, description?: string) => void
+  addComponent: (component: ComponentMetadata, zoneId?: string, index?: number) => void
+  updateComponentProps: (componentId: string, props: Record<string, unknown>) => void
+  updateComponentDataSource: (componentId: string, dataSource: DataSourceConfig) => void
+  deleteComponent: (componentId: string) => void
+  reorderComponent: (zoneId: string, oldIndex: number, newIndex: number) => void
+  moveComponent: (
+    componentId: string,
+    sourceZoneId: string,
+    targetZoneId: string,
+    newIndex?: number
+  ) => void
+
+  // UX Actions
   setMode: (mode: 'edit' | 'preview') => void
   selectComponent: (componentId: string | null) => void
   hoverComponent: (componentId: string | null) => void
   copyComponent: (component: ComponentMetadata) => void
   pasteComponent: () => ComponentMetadata | null
   clearClipboard: () => void
-  addToHistory: (action: string, state: unknown) => void
-  undo: () => void
-  redo: () => void
-  canUndo: () => boolean
-  canRedo: () => boolean
   setDirty: (dirty: boolean) => void
   setZoom: (zoom: number) => void
   toggleGrid: () => void
@@ -44,15 +58,16 @@ interface DesignerActions {
 
 type DesignerStore = DesignerState & DesignerActions
 
-const MAX_HISTORY = 50
+// Default initial layout
+const defaultLayout = clone(layoutTemplates[0])
 
 const initialState: DesignerState = {
+  currentLayout: defaultLayout,
+  actionDescription: 'Initial State',
   mode: 'edit',
   selectedComponent: null,
   hoveredComponent: null,
   clipboard: null,
-  history: [],
-  historyIndex: -1,
   isDirty: false,
   zoom: 100,
   gridEnabled: true,
@@ -60,104 +75,216 @@ const initialState: DesignerState = {
 }
 
 export const useDesignerStore = create<DesignerStore>()(
-  devtools(
-    (set, get) => ({
-      ...initialState,
+  temporal(
+    devtools(
+      (set, get: () => DesignerStore) => ({
+        ...initialState,
 
-      setMode: (mode) => set({ mode }, false, 'setMode'),
+        // ====================================================================
+        // Layout Actions (Tracked by Zundo)
+        // ====================================================================
 
-      selectComponent: (componentId) =>
-        set({ selectedComponent: componentId }, false, 'selectComponent'),
+        // ====================================================================
+        // Layout Actions (Tracked by Zundo)
+        // ====================================================================
 
-      hoverComponent: (componentId) =>
-        set({ hoveredComponent: componentId }, false, 'hoverComponent'),
-
-      copyComponent: (component) =>
-        set({ clipboard: JSON.parse(JSON.stringify(component)) }, false, 'copyComponent'),
-
-      pasteComponent: () => {
-        const { clipboard } = get()
-        if (!clipboard) return null
-
-        // Return a copy with new ID
-        return {
-          ...clipboard,
-          id: crypto.randomUUID(),
-        }
-      },
-
-      clearClipboard: () => set({ clipboard: null }, false, 'clearClipboard'),
-
-      addToHistory: (action, state) =>
-        set(
-          (prevState) => {
-            // Remove any future history entries if we're in the middle of history
-            const newHistory = prevState.history.slice(0, prevState.historyIndex + 1)
-
-            // Add new entry
-            newHistory.push({
-              action,
-              state: JSON.parse(JSON.stringify(state)),
-              timestamp: Date.now(),
-            })
-
-            // Limit history size
-            if (newHistory.length > MAX_HISTORY) {
-              newHistory.shift()
-            }
-
-            return {
-              history: newHistory,
-              historyIndex: newHistory.length - 1,
+        setLayout: (layout: LayoutTemplate, description = 'Changed Layout') =>
+          set(
+            {
+              currentLayout: clone(layout),
+              actionDescription: description,
               isDirty: true,
-            }
-          },
-          false,
-          'addToHistory'
-        ),
+            },
+            false,
+            'setLayout'
+          ),
 
-      undo: () =>
-        set(
-          (state) => {
-            if (state.historyIndex > 0) {
-              return { historyIndex: state.historyIndex - 1 }
-            }
-            return state
-          },
-          false,
-          'undo'
-        ),
+        addComponent: (component: ComponentMetadata, zoneId?: string, index?: number) =>
+          set(
+            (state: DesignerState) => {
+              const Layout = clone(state.currentLayout)
+              const targetZoneId = zoneId || Layout.zones[0]?.id || 'main'
+              const updatedZones = Layout.zones.map((zone: LayoutZone) => {
+                if (zone.id !== targetZoneId) return zone
+                const newComponents = [...zone.components]
+                if (typeof index === 'number') {
+                  newComponents.splice(index, 0, component)
+                } else {
+                  newComponents.push(component)
+                }
+                return { ...zone, components: newComponents }
+              })
 
-      redo: () =>
-        set(
-          (state) => {
-            if (state.historyIndex < state.history.length - 1) {
-              return { historyIndex: state.historyIndex + 1 }
-            }
-            return state
-          },
-          false,
-          'redo'
-        ),
+              return {
+                currentLayout: { ...Layout, zones: updatedZones },
+                actionDescription: `Added ${component.type}`,
+                selectedComponent: component.id,
+                isDirty: true,
+              }
+            },
+            false,
+            'addComponent'
+          ),
 
-      canUndo: () => get().historyIndex > 0,
+        updateComponentProps: (componentId: string, props: Record<string, unknown>) =>
+          set(
+            (state: DesignerState) => {
+              const Layout = clone(state.currentLayout)
+              const updatedZones = Layout.zones.map((zone: LayoutZone) => ({
+                ...zone,
+                components: zone.components.map((comp: ComponentMetadata) =>
+                  comp.id === componentId ? { ...comp, props: { ...comp.props, ...props } } : comp
+                ),
+              }))
+              return {
+                currentLayout: { ...Layout, zones: updatedZones },
+                actionDescription: 'Updated Properties',
+                isDirty: true,
+              }
+            },
+            false,
+            'updateComponentProps'
+          ),
 
-      canRedo: () => {
-        const { historyIndex, history } = get()
-        return historyIndex < history.length - 1
-      },
+        updateComponentDataSource: (componentId: string, dataSource: DataSourceConfig) =>
+          set(
+            (state: DesignerState) => {
+              const Layout = clone(state.currentLayout)
+              const updatedZones = Layout.zones.map((zone: LayoutZone) => ({
+                ...zone,
+                components: zone.components.map((comp: ComponentMetadata) =>
+                  comp.id === componentId ? { ...comp, dataSource } : comp
+                ),
+              }))
+              return {
+                currentLayout: { ...Layout, zones: updatedZones },
+                actionDescription: 'Updated Data Source',
+                isDirty: true,
+              }
+            },
+            false,
+            'updateComponentDataSource'
+          ),
 
-      setDirty: (isDirty) => set({ isDirty }, false, 'setDirty'),
+        deleteComponent: (componentId: string) =>
+          set(
+            (state: DesignerState) => {
+              const Layout = clone(state.currentLayout)
+              const updatedZones = Layout.zones.map((zone: LayoutZone) => ({
+                ...zone,
+                components: zone.components.filter((c: ComponentMetadata) => c.id !== componentId),
+              }))
+              return {
+                currentLayout: { ...Layout, zones: updatedZones },
+                actionDescription: 'Deleted Component',
+                selectedComponent: null,
+                isDirty: true,
+              }
+            },
+            false,
+            'deleteComponent'
+          ),
 
-      setZoom: (zoom) => set({ zoom: Math.min(200, Math.max(25, zoom)) }, false, 'setZoom'),
+        reorderComponent: (zoneId: string, oldIndex: number, newIndex: number) =>
+          set(
+            (state: DesignerState) => {
+              const Layout = clone(state.currentLayout)
+              const zone = Layout.zones.find((z: LayoutZone) => z.id === zoneId)
+              if (!zone) return {}
 
-      toggleGrid: () => set((state) => ({ gridEnabled: !state.gridEnabled }), false, 'toggleGrid'),
+              const [removed] = zone.components.splice(oldIndex, 1)
+              zone.components.splice(newIndex, 0, removed)
 
-      toggleSnapToGrid: () =>
-        set((state) => ({ snapToGrid: !state.snapToGrid }), false, 'toggleSnapToGrid'),
+              return {
+                currentLayout: Layout,
+                actionDescription: 'Reordered Component',
+                isDirty: true,
+              }
+            },
+            false,
+            'reorderComponent'
+          ),
 
-      reset: () => set(initialState, false, 'reset'),
-    }),
-    { name: 'DesignerStore' }
+        moveComponent: (
+          componentId: string,
+          sourceZoneId: string,
+          targetZoneId: string,
+          newIndex?: number
+        ) =>
+          set(
+            (state: DesignerState) => {
+              const Layout = clone(state.currentLayout)
+              const sourceZone = Layout.zones.find((z: LayoutZone) => z.id === sourceZoneId)
+              const targetZone = Layout.zones.find((z: LayoutZone) => z.id === targetZoneId)
+
+              if (!sourceZone || !targetZone) return {}
+
+              // Find and remove from source
+              const compIndex = sourceZone.components.findIndex(
+                (c: ComponentMetadata) => c.id === componentId
+              )
+              if (compIndex === -1) return {}
+              const [movedComp] = sourceZone.components.splice(compIndex, 1)
+
+              // Add to target
+              if (typeof newIndex === 'number') {
+                targetZone.components.splice(newIndex, 0, movedComp)
+              } else {
+                targetZone.components.push(movedComp)
+              }
+
+              return {
+                currentLayout: Layout,
+                actionDescription: 'Moved Component',
+                isDirty: true,
+              }
+            },
+            false,
+            'moveComponent'
+          ),
+
+        // ====================================================================
+        // UI Actions (Not tracked or partial)
+        // ====================================================================
+
+        setMode: (mode: 'edit' | 'preview') => set({ mode }, false, 'setMode'),
+        selectComponent: (id: string | null) =>
+          set({ selectedComponent: id }, false, 'selectComponent'),
+        hoverComponent: (id: string | null) =>
+          set({ hoveredComponent: id }, false, 'hoverComponent'),
+
+        copyComponent: (component: ComponentMetadata) =>
+          set({ clipboard: clone(component) }, false, 'copyComponent'),
+
+        pasteComponent: () => {
+          const { clipboard } = get()
+          if (!clipboard) return null
+          return { ...clipboard, id: crypto.randomUUID() } as ComponentMetadata
+        },
+
+        clearClipboard: () => set({ clipboard: null }, false, 'clearClipboard'),
+        setDirty: (isDirty: boolean) => set({ isDirty }, false, 'setDirty'),
+        setZoom: (zoom: number) =>
+          set({ zoom: Math.min(200, Math.max(25, zoom)) }, false, 'setZoom'),
+        toggleGrid: () =>
+          set((s: DesignerState) => ({ gridEnabled: !s.gridEnabled }), false, 'toggleGrid'),
+        toggleSnapToGrid: () =>
+          set((s: DesignerState) => ({ snapToGrid: !s.snapToGrid }), false, 'toggleSnapToGrid'),
+        reset: () => set(initialState, false, 'reset'),
+      }),
+      { name: 'DesignerStore' }
+    ),
+    {
+      // Only track changes to currentLayout and actionDescription
+      partialize: (state: DesignerState) => ({
+        currentLayout: state.currentLayout,
+        actionDescription: state.actionDescription,
+      }),
+      limit: 50, // Max history size
+    }
   )
-)
+) as unknown as import('zustand').UseBoundStore<
+  import('zustand').StoreApi<DesignerStore> & {
+    temporal: import('zundo').TemporalState<DesignerState>
+  }
+>

@@ -1,0 +1,8 @@
+import { z } from 'zod';
+
+export const {{camelCase name}}Schema = z.object({
+  // Define your component props schema here
+  // label: z.string().optional(),
+});
+
+export type {{pascalCase name}}SchemaType = z.infer<typeof {{camelCase name}}Schema>;

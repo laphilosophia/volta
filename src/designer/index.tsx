@@ -11,24 +11,22 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core'
-import { arrayMove } from '@dnd-kit/sortable'
 import { Layers } from 'lucide-react'
 import React, { useCallback, useState } from 'react'
+import { useStore } from 'zustand'
 import { LayoutCanvas } from '../components/designer'
 import {
-  cloneLayoutTemplate,
   componentRegistry,
   DynamicRenderer,
-  layoutTemplates,
   useDesignerStore,
   useMetadataStore,
   type ComponentMetadata,
-  type DataSourceConfig,
   type LayoutTemplate,
   type PageMetadata,
 } from '../core'
 import { useDndSensors } from '../hooks'
 import { ComponentPaletteV2 } from './components/ComponentPaletteV2'
+import { HistoryPanel } from './components/HistoryPanel'
 import { LayoutSelectorModal } from './components/LayoutSelectorModal'
 import { PropertyInspectorV2 } from './components/PropertyInspectorV2'
 import { ToolbarV2 } from './components/ToolbarV2'
@@ -88,7 +86,19 @@ const ZoneComponentDragOverlay: React.FC<{ component: ComponentMetadata | null }
 const Designer: React.FC = () => {
   const sensors = useDndSensors()
 
+  // Zundo Temporal Store
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const temporal = (useDesignerStore as any).temporal
+  const { undo, redo, pastStates, futureStates } = useStore(temporal) as {
+    undo: () => void
+    redo: () => void
+    pastStates: unknown[]
+    futureStates: unknown[]
+  }
+
+  // Main Store
   const {
+    currentLayout,
     mode,
     selectedComponent,
     clipboard,
@@ -101,24 +111,21 @@ const Designer: React.FC = () => {
     pasteComponent,
     setZoom,
     toggleGrid,
-    addToHistory,
-    undo,
-    redo,
-    canUndo,
-    canRedo,
+    setLayout, // New action
+    addComponent, // New action
+    reorderComponent, // New action
+    updateComponentProps, // New action
+    updateComponentDataSource, // New action
+    deleteComponent, // New action
     setDirty,
   } = useDesignerStore()
 
   const { pages, setPage } = useMetadataStore()
 
-  // State
+  // Local State
   const [currentPageId] = useState('designer-v2-demo')
   const [showLayoutSelector, setShowLayoutSelector] = useState(false)
-  const [currentLayout, setCurrentLayout] = useState<LayoutTemplate>(
-    cloneLayoutTemplate(
-      layoutTemplates.find((l) => l.id === 'sidebar-left') || layoutTemplates[0]
-    )
-  )
+  const [showHistory, setShowHistory] = useState(false)
   const [activeZone] = useState<string | null>(null)
 
   // Drag state
@@ -150,29 +157,34 @@ const Designer: React.FC = () => {
   }, [pages, currentPageId, currentLayout])
 
   // Helper to find component by ID across all zones
-  const findComponentById = useCallback((componentId: string): ComponentMetadata | null => {
-    for (const zone of currentLayout.zones) {
-      const found = zone.components.find(c => c.id === componentId)
-      if (found) return found
-    }
-    return null
-  }, [currentLayout])
+  const findComponentById = useCallback(
+    (componentId: string): ComponentMetadata | null => {
+      for (const zone of currentLayout.zones) {
+        const found = zone.components.find((c) => c.id === componentId)
+        if (found) return found
+      }
+      return null
+    },
+    [currentLayout]
+  )
 
   // Helper to find zone containing a component
-  const findZoneContainingComponent = useCallback((componentId: string): string | null => {
-    for (const zone of currentLayout.zones) {
-      if (zone.components.some(c => c.id === componentId)) {
-        return zone.id
+  const findZoneContainingComponent = useCallback(
+    (componentId: string): string | null => {
+      for (const zone of currentLayout.zones) {
+        if (zone.components.some((c) => c.id === componentId)) {
+          return zone.id
+        }
       }
-    }
-    return null
-  }, [currentLayout])
+      return null
+    },
+    [currentLayout]
+  )
 
   // ============================================================================
-  // Component Handlers (Hoisted for DnD access)
+  // Component Handlers
   // ============================================================================
 
-  // Handle add component to zone
   const handleAddComponent = useCallback(
     (type: string, zoneId?: string) => {
       const definition = componentRegistry.get(type)
@@ -185,160 +197,114 @@ const Designer: React.FC = () => {
         dataSource: { type: 'static' },
       }
 
-      const targetZoneId = zoneId || currentLayout.zones[0]?.id || 'main'
-      const updatedZones = currentLayout.zones.map((zone) =>
-        zone.id === targetZoneId
-          ? { ...zone, components: [...zone.components, newComponent] }
-          : zone
-      )
-
-      setCurrentLayout({ ...currentLayout, zones: updatedZones })
-      addToHistory('addComponent', newComponent)
-      selectComponent(newComponent.id)
-      setDirty(true)
+      addComponent(newComponent, zoneId)
     },
-    [currentLayout, addToHistory, selectComponent, setDirty]
+    [addComponent]
   )
 
   // ============================================================================
-  // Global Drag Handlers - Handles BOTH palette drops AND zone reordering
+  // Global Drag Handlers
   // ============================================================================
 
-  const handleGlobalDragStart = useCallback((event: DragStartEvent) => {
-    const { active } = event
-    const activeId = active.id as string
+  const handleGlobalDragStart = useCallback(
+    (event: DragStartEvent) => {
+      const { active } = event
+      const activeId = active.id as string
 
-    // Check if dragging from palette
-    if (activeId.startsWith('palette-')) {
-      const componentType = active.data.current?.componentType
+      // Check if dragging from palette
+      if (activeId.startsWith('palette-')) {
+        const componentType = active.data.current?.componentType
+        setDragState({
+          isDragging: true,
+          activeId,
+          activeType: 'palette-component',
+          componentType,
+          activeComponent: null,
+        })
+      } else {
+        // Dragging existing component in zone
+        const component = findComponentById(activeId)
+        setDragState({
+          isDragging: true,
+          activeId,
+          activeType: 'zone-component',
+          componentType: null,
+          activeComponent: component,
+        })
+      }
+    },
+    [findComponentById]
+  )
+
+  const handleGlobalDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event
+
+      // Store current drag info before resetting
+      const currentDragState = { ...dragState }
+
+      // Reset drag state
       setDragState({
-        isDragging: true,
-        activeId,
-        activeType: 'palette-component',
-        componentType,
+        isDragging: false,
+        activeId: null,
+        activeType: null,
+        componentType: null,
         activeComponent: null,
       })
-    } else {
-      // Dragging existing component in zone
-      const component = findComponentById(activeId)
-      setDragState({
-        isDragging: true,
-        activeId,
-        activeType: 'zone-component',
-        componentType: null,
-        activeComponent: component,
-      })
-    }
-  }, [findComponentById])
 
-  const handleGlobalDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event
+      if (!over) return
 
-    // Store current drag info before resetting
-    const currentDragState = { ...dragState }
+      const activeId = active.id as string
+      const overId = over.id as string
 
-    // Reset drag state immediately
-    setDragState({
-      isDragging: false,
-      activeId: null,
-      activeType: null,
-      componentType: null,
-      activeComponent: null,
-    })
+      // Handle palette drop to zone
+      if (activeId.startsWith('palette-') && overId.startsWith('zone-')) {
+        const componentType = active.data.current?.componentType
+        const zoneId = over.data.current?.zoneId
 
-    if (!over) return
-
-    const activeId = active.id as string
-    const overId = over.id as string
-
-    // Handle palette drop to zone
-    if (activeId.startsWith('palette-') && overId.startsWith('zone-')) {
-      const componentType = active.data.current?.componentType
-      const zoneId = over.data.current?.zoneId
-
-      if (componentType && zoneId) {
-        handleAddComponent(componentType, zoneId)
+        if (componentType && zoneId) {
+          handleAddComponent(componentType, zoneId)
+        }
+        return
       }
-      return
-    }
 
-    // Handle zone component reordering (within same zone)
-    if (currentDragState.activeType === 'zone-component' && activeId !== overId) {
-      // Find the zone containing the active component
-      const sourceZoneId = findZoneContainingComponent(activeId)
-      if (!sourceZoneId) return
+      // Handle zone component reordering
+      if (currentDragState.activeType === 'zone-component' && activeId !== overId) {
+        const sourceZoneId = findZoneContainingComponent(activeId)
+        if (!sourceZoneId) return
 
-      const sourceZone = currentLayout.zones.find(z => z.id === sourceZoneId)
-      if (!sourceZone) return
+        const sourceZone = currentLayout.zones.find((z) => z.id === sourceZoneId)
+        if (!sourceZone) return
 
-      // Check if dropping on another component in the same zone
-      const oldIndex = sourceZone.components.findIndex(c => c.id === activeId)
-      const newIndex = sourceZone.components.findIndex(c => c.id === overId)
+        const oldIndex = sourceZone.components.findIndex((c) => c.id === activeId)
+        const newIndex = sourceZone.components.findIndex((c) => c.id === overId)
 
-      if (oldIndex !== -1 && newIndex !== -1) {
-        // Reorder within the same zone
-        const updatedZones = currentLayout.zones.map((zone) => {
-          if (zone.id !== sourceZoneId) return zone
-
-          return {
-            ...zone,
-            components: arrayMove(zone.components, oldIndex, newIndex),
-          }
-        })
-
-        setCurrentLayout({ ...currentLayout, zones: updatedZones })
-        addToHistory('reorder', { zoneId: sourceZoneId, oldIndex, newIndex })
-        setDirty(true)
+        if (oldIndex !== -1 && newIndex !== -1) {
+          reorderComponent(sourceZoneId, oldIndex, newIndex)
+        }
       }
-    }
-  }, [dragState, currentLayout, findZoneContainingComponent, addToHistory, setDirty, handleAddComponent])
+    },
+    [dragState, currentLayout, findZoneContainingComponent, reorderComponent, handleAddComponent]
+  )
 
   // ============================================================================
-  // Component Handlers
+  // Other Handlers
   // ============================================================================
 
-  // Handle layout change
   const handleLayoutChange = useCallback(
     (template: LayoutTemplate) => {
-      const clonedTemplate = cloneLayoutTemplate(template)
-
-      // Preserve components from old layout
-      if (currentLayout && currentLayout.zones.length > 0) {
-        const allComponents = currentLayout.zones.flatMap((z) => z.components)
-        if (clonedTemplate.zones.length > 0 && allComponents.length > 0) {
-          clonedTemplate.zones[0].components = allComponents
-        }
-      }
-
-      setCurrentLayout(clonedTemplate)
-      addToHistory('changeLayout', template.id)
-      setDirty(true)
+      setLayout(template)
     },
-    [currentLayout, addToHistory, setDirty]
+    [setLayout]
   )
 
-
-
-  // Handle component reorder in zone (called from LayoutCanvas if needed)
   const handleComponentReorder = useCallback(
     (zoneId: string, oldIndex: number, newIndex: number) => {
-      const updatedZones = currentLayout.zones.map((zone) => {
-        if (zone.id !== zoneId) return zone
-
-        return {
-          ...zone,
-          components: arrayMove(zone.components, oldIndex, newIndex),
-        }
-      })
-
-      setCurrentLayout({ ...currentLayout, zones: updatedZones })
-      addToHistory('reorder', { zoneId, oldIndex, newIndex })
-      setDirty(true)
+      reorderComponent(zoneId, oldIndex, newIndex)
     },
-    [currentLayout, addToHistory, setDirty]
+    [reorderComponent]
   )
 
-  // Handle component drop (from palette to zone)
   const handleComponentDrop = useCallback(
     (zoneId: string, componentType: string) => {
       handleAddComponent(componentType, zoneId)
@@ -346,58 +312,12 @@ const Designer: React.FC = () => {
     [handleAddComponent]
   )
 
-  // Handle update props
-  const handleUpdateProps = useCallback(
-    (componentId: string, props: Record<string, unknown>) => {
-      const updatedZones = currentLayout.zones.map((zone) => ({
-        ...zone,
-        components: zone.components.map((comp) =>
-          comp.id === componentId
-            ? { ...comp, props: { ...comp.props, ...props } }
-            : comp
-        ),
-      }))
-
-      setCurrentLayout({ ...currentLayout, zones: updatedZones })
-      addToHistory('updateProps', { componentId, props })
-      setDirty(true)
-    },
-    [currentLayout, addToHistory, setDirty]
-  )
-
-  // Handle update data source
-  const handleUpdateDataSource = useCallback(
-    (componentId: string, dataSource: DataSourceConfig) => {
-      const updatedZones = currentLayout.zones.map((zone) => ({
-        ...zone,
-        components: zone.components.map((comp) =>
-          comp.id === componentId ? { ...comp, dataSource } : comp
-        ),
-      }))
-
-      setCurrentLayout({ ...currentLayout, zones: updatedZones })
-      addToHistory('updateDataSource', { componentId, dataSource })
-      setDirty(true)
-    },
-    [currentLayout, addToHistory, setDirty]
-  )
-
-  // Handle delete component
   const handleDeleteComponent = useCallback(() => {
-    if (!selectedComponent) return
+    if (selectedComponent) {
+      deleteComponent(selectedComponent)
+    }
+  }, [selectedComponent, deleteComponent])
 
-    const updatedZones = currentLayout.zones.map((zone) => ({
-      ...zone,
-      components: zone.components.filter((comp) => comp.id !== selectedComponent),
-    }))
-
-    setCurrentLayout({ ...currentLayout, zones: updatedZones })
-    addToHistory('deleteComponent', selectedComponent)
-    selectComponent(null)
-    setDirty(true)
-  }, [selectedComponent, currentLayout, addToHistory, selectComponent, setDirty])
-
-  // Handle copy component
   const handleCopyComponent = useCallback(() => {
     if (!selectedComponent) return
 
@@ -410,32 +330,18 @@ const Designer: React.FC = () => {
     }
   }, [selectedComponent, currentLayout, copyComponent])
 
-  // Handle paste
   const handlePaste = useCallback(() => {
     const pastedComponent = pasteComponent()
     if (!pastedComponent) return
+    addComponent(pastedComponent)
+  }, [pasteComponent, addComponent])
 
-    const targetZoneId = currentLayout.zones[0]?.id || 'main'
-    const updatedZones = currentLayout.zones.map((zone) =>
-      zone.id === targetZoneId
-        ? { ...zone, components: [...zone.components, pastedComponent] }
-        : zone
-    )
-
-    setCurrentLayout({ ...currentLayout, zones: updatedZones })
-    addToHistory('paste', pastedComponent)
-    selectComponent(pastedComponent.id)
-    setDirty(true)
-  }, [pasteComponent, currentLayout, addToHistory, selectComponent, setDirty])
-
-  // Handle save
   const handleSave = useCallback(() => {
     console.log('Saving page with layout:', currentLayout)
     setPage(currentPageId, { ...currentPage, layout: currentLayout })
     setDirty(false)
   }, [currentLayout, currentPage, currentPageId, setPage, setDirty])
 
-  // Get selected component data
   const selectedComponentData = selectedComponent
     ? currentLayout.zones
       .flatMap((z) => z.components)
@@ -454,10 +360,10 @@ const Designer: React.FC = () => {
           mode={mode}
           onModeChange={setMode}
           onSave={handleSave}
-          onUndo={undo}
-          onRedo={redo}
-          canUndo={canUndo()}
-          canRedo={canRedo()}
+          onUndo={() => undo()}
+          onRedo={() => redo()}
+          canUndo={pastStates.length > 0}
+          canRedo={futureStates.length > 0}
           zoom={zoom}
           onZoomChange={setZoom}
           onToggleGrid={toggleGrid}
@@ -467,14 +373,13 @@ const Designer: React.FC = () => {
           isDirty={isDirty}
           currentLayout={currentLayout}
           onOpenLayoutSelector={() => setShowLayoutSelector(true)}
+          onToggleHistory={() => setShowHistory(!showHistory)}
+          showHistory={showHistory}
         />
 
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex overflow-hidden relative">
           {mode === 'edit' && (
-            <ComponentPaletteV2
-              onAddComponent={handleAddComponent}
-              activeZone={activeZone}
-            />
+            <ComponentPaletteV2 onAddComponent={handleAddComponent} activeZone={activeZone} />
           )}
 
           <LayoutCanvas
@@ -493,15 +398,17 @@ const Designer: React.FC = () => {
             <PropertyInspectorV2
               component={selectedComponentData}
               onUpdateProps={(props) =>
-                selectedComponent && handleUpdateProps(selectedComponent, props)
+                selectedComponent && updateComponentProps(selectedComponent, props)
               }
               onUpdateDataSource={(ds) =>
-                selectedComponent && handleUpdateDataSource(selectedComponent, ds)
+                selectedComponent && updateComponentDataSource(selectedComponent, ds)
               }
               onDelete={handleDeleteComponent}
               onCopy={handleCopyComponent}
             />
           )}
+
+          {showHistory && <HistoryPanel onClose={() => setShowHistory(false)} />}
         </div>
 
         <LayoutSelectorModal
@@ -512,7 +419,6 @@ const Designer: React.FC = () => {
         />
       </div>
 
-      {/* Global Drag Overlay - Shows preview for BOTH palette and zone drags */}
       <DragOverlay dropAnimation={null}>
         {dragState.isDragging && dragState.activeType === 'palette-component' && (
           <PaletteDragOverlay componentType={dragState.componentType} />

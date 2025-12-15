@@ -37,7 +37,19 @@ Thank you for your interest in contributing! We welcome contributions from every
    npm install
    ```
 
-3. **Start the development server**
+3. **Generate Components (Optional)**
+
+   To create a new component with best practices (schema, types, tests), use the CLI:
+
+   ```bash
+   # Interactive mode
+   npm run generate
+
+   # Shortcut example
+   npm run generate headless MyComponent
+   ```
+
+4. **Start the development server**
    ```bash
    npm run dev
    ```

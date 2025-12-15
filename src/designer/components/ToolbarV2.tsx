@@ -8,12 +8,13 @@ import {
   Edit3,
   Eye,
   Grid3X3,
+  History as HistoryIcon,
   LayoutDashboard,
   Redo,
   Save,
   Undo2,
   ZoomIn,
-  ZoomOut,
+  ZoomOut
 } from 'lucide-react'
 import React from 'react'
 import type { LayoutTemplate } from '../../core'
@@ -39,6 +40,8 @@ interface ToolbarV2Props {
   isDirty: boolean
   currentLayout: LayoutTemplate | null
   onOpenLayoutSelector: () => void
+  onToggleHistory: () => void
+  showHistory: boolean
 }
 
 // ============================================================================
@@ -62,6 +65,8 @@ export const ToolbarV2: React.FC<ToolbarV2Props> = ({
   isDirty,
   currentLayout,
   onOpenLayoutSelector,
+  onToggleHistory,
+  showHistory,
 }) => {
   return (
     <div className="h-14 border-b border-(--color-border) bg-(--color-surface) flex items-center justify-between px-4">
@@ -119,6 +124,15 @@ export const ToolbarV2: React.FC<ToolbarV2Props> = ({
           disabled={!canRedo}
           icon={<Redo className="w-4 h-4" />}
           title="Redo"
+        />
+
+        <Divider />
+
+        <ToolbarButton
+          onClick={onToggleHistory}
+          isActive={showHistory}
+          icon={<HistoryIcon className="w-4 h-4" />}
+          title="History Log"
         />
 
         <Divider />

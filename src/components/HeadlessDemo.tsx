@@ -60,9 +60,10 @@ export const HeadlessDemo: React.FC = () => {
           <code>{`<HeadlessDataTable endpoint="getUsers" />`}</code> - Fetches, maps, and renders.
         </p>
 
-        <HeadlessDataTable
+        <HeadlessDataTable<User>
           endpoint="getUsers"
-          columns={columns}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          columns={columns as any}
           onRowClick={(user) => alert(`Clicked user: ${user.name}`)}
         />
       </section>

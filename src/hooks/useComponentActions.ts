@@ -45,14 +45,8 @@ export function useComponentActions({
   onUpdateComponent,
   onDeleteComponent,
 }: UseComponentActionsOptions = {}): UseComponentActionsReturn {
-  const {
-    selectedComponent,
-    copyComponent,
-    pasteComponent,
-    selectComponent,
-    addToHistory,
-    setDirty,
-  } = useDesignerStore()
+  const { selectedComponent, copyComponent, pasteComponent, selectComponent, setDirty } =
+    useDesignerStore()
 
   // Create a new component instance
   const createComponent = useCallback((type: string): ComponentMetadata | null => {
@@ -77,31 +71,31 @@ export function useComponentActions({
       if (!newComponent) return
 
       onAddComponent?.(newComponent)
-      addToHistory('addComponent', newComponent)
+      // History handled by store middleware
       selectComponent(newComponent.id)
       setDirty(true)
     },
-    [createComponent, onAddComponent, addToHistory, selectComponent, setDirty]
+    [createComponent, onAddComponent, selectComponent, setDirty]
   )
 
   // Handle updating props
   const handleUpdateProps = useCallback(
     (componentId: string, props: Record<string, unknown>) => {
       onUpdateComponent?.(componentId, { props })
-      addToHistory('updateProps', { componentId, props })
+      // History handled by store middleware
       setDirty(true)
     },
-    [onUpdateComponent, addToHistory, setDirty]
+    [onUpdateComponent, setDirty]
   )
 
   // Handle updating data source
   const handleUpdateDataSource = useCallback(
     (componentId: string, dataSource: DataSourceConfig) => {
       onUpdateComponent?.(componentId, { dataSource })
-      addToHistory('updateDataSource', { componentId, dataSource })
+      // History handled by store middleware
       setDirty(true)
     },
-    [onUpdateComponent, addToHistory, setDirty]
+    [onUpdateComponent, setDirty]
   )
 
   // Handle deleting component
@@ -109,10 +103,10 @@ export function useComponentActions({
     if (!selectedComponent) return
 
     onDeleteComponent?.(selectedComponent)
-    addToHistory('deleteComponent', selectedComponent)
+    // History handled by store middleware
     selectComponent(null)
     setDirty(true)
-  }, [selectedComponent, onDeleteComponent, addToHistory, selectComponent, setDirty])
+  }, [selectedComponent, onDeleteComponent, selectComponent, setDirty])
 
   // Handle copying component
   const handleCopyComponent = useCallback(
@@ -130,12 +124,12 @@ export function useComponentActions({
     if (!pastedComponent) return null
 
     onAddComponent?.(pastedComponent)
-    addToHistory('paste', pastedComponent)
+    // History handled by store middleware
     selectComponent(pastedComponent.id)
     setDirty(true)
 
     return pastedComponent
-  }, [pasteComponent, onAddComponent, addToHistory, selectComponent, setDirty])
+  }, [pasteComponent, onAddComponent, selectComponent, setDirty])
 
   return {
     createComponent,
