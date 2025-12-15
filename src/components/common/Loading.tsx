@@ -19,10 +19,7 @@ const sizeClasses = {
   lg: 'w-16 h-16',
 }
 
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
-  size = 'md',
-  className = '',
-}) => (
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 'md', className = '' }) => (
   <div className={`relative ${sizeClasses[size]} ${className}`}>
     <div className="absolute inset-0 rounded-full border-4 border-(--color-primary-light)" />
     <div className="absolute inset-0 rounded-full border-4 border-(--color-primary) border-t-transparent animate-spin" />
@@ -45,9 +42,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
   <div className="flex items-center justify-center h-screen bg-(--color-background)">
     <div className="text-center">
       <LoadingSpinner size="lg" className="mx-auto mb-6" />
-      <h2 className="text-lg font-semibold text-(--color-text-primary) mb-2">
-        {title}
-      </h2>
+      <h2 className="text-lg font-semibold text-(--color-text-primary) mb-2">{title}</h2>
       <p className="text-sm text-(--color-text-muted)">{subtitle}</p>
     </div>
   </div>

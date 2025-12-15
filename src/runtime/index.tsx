@@ -15,27 +15,27 @@ import {
   Settings,
   Sun,
   Users,
-} from 'lucide-react';
-import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+} from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   PageRenderer,
   useMetadataStore,
   useRuntimeStore,
   useTenantStore,
   type PageMetadata,
-} from '../core';
-import { themeManager } from '../core/theme-engine';
+} from '../core'
+import { themeManager } from '../core/theme-engine'
 
 // ============================================================================
 // Sidebar Navigation
 // ============================================================================
 
 interface NavItem {
-  id: string;
-  label: string;
-  icon: React.ReactNode;
-  href?: string;
+  id: string
+  label: string
+  icon: React.ReactNode
+  href?: string
 }
 
 const navItems: NavItem[] = [
@@ -44,17 +44,17 @@ const navItems: NavItem[] = [
   { id: 'customers', label: 'Customers', icon: <Users className="w-5 h-5" /> },
   { id: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-5 h-5" /> },
   { id: 'settings', label: 'Settings', icon: <Settings className="w-5 h-5" /> },
-];
+]
 
 interface SidebarProps {
-  isOpen: boolean;
-  onToggle: () => void;
-  currentPage: string;
-  onNavigate: (pageId: string) => void;
+  isOpen: boolean
+  onToggle: () => void
+  currentPage: string
+  onNavigate: (pageId: string) => void
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, currentPage, onNavigate }) => {
-  const { theme } = useTenantStore();
+  const { theme } = useTenantStore()
 
   return (
     <aside
@@ -70,13 +70,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, currentPage, onNavi
         {isOpen && (
           <div className="flex items-center gap-4">
             {theme?.logo ? (
-              <img src={theme.logo} alt="Logo" className="h-8 w-8 object-contain text-(--color-text-primary)" />
+              <img
+                src={theme.logo}
+                alt="Logo"
+                className="h-8 w-8 object-contain text-(--color-text-primary)"
+              />
             ) : (
               <div className="w-8 h-8 rounded-xs gradient-primary" />
             )}
-            <span className="text-xl font-semibold text-(--color-text-primary)">
-              Volta
-            </span>
+            <span className="text-xl font-semibold text-(--color-text-primary)">Volta</span>
           </div>
         )}
         <button
@@ -96,9 +98,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, currentPage, onNavi
             className={`
               w-full flex items-center gap-3 px-3 py-2.5 rounded-xs
               transition-colors duration-150
-              ${currentPage === item.id
-                ? 'bg-(--color-primary) text-white'
-                : 'text-(--color-text-primary) hover:bg-(--color-surface-hover)'}
+              ${
+                currentPage === item.id
+                  ? 'bg-(--color-primary) text-white'
+                  : 'text-(--color-text-primary) hover:bg-(--color-surface-hover)'
+              }
             `}
             title={!isOpen ? item.label : undefined}
           >
@@ -108,34 +112,34 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, currentPage, onNavi
         ))}
       </nav>
     </aside>
-  );
-};
+  )
+}
 
 // ============================================================================
 // Header
 // ============================================================================
 
 interface HeaderProps {
-  sidebarOpen: boolean;
-  onSearch?: (query: string) => void;
+  sidebarOpen: boolean
+  onSearch?: (query: string) => void
 }
 
 const Header: React.FC<HeaderProps> = ({ sidebarOpen }) => {
-  const { t, i18n } = useTranslation('common');
-  const [darkMode, setDarkMode] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const { locale, setLocale } = useTenantStore();
+  const { t, i18n } = useTranslation('common')
+  const [darkMode, setDarkMode] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const { locale, setLocale } = useTenantStore()
 
   const toggleDarkMode = () => {
-    const newMode = themeManager.toggleDarkMode();
-    setDarkMode(newMode);
-  };
+    const newMode = themeManager.toggleDarkMode()
+    setDarkMode(newMode)
+  }
 
   const toggleLanguage = () => {
-    const newLocale = locale === 'en' ? 'tr' : 'en';
-    setLocale(newLocale);
-    i18n.changeLanguage(newLocale);
-  };
+    const newLocale = locale === 'en' ? 'tr' : 'en'
+    setLocale(newLocale)
+    i18n.changeLanguage(newLocale)
+  }
 
   return (
     <header
@@ -195,8 +199,8 @@ const Header: React.FC<HeaderProps> = ({ sidebarOpen }) => {
         </div>
       </div>
     </header>
-  );
-};
+  )
+}
 
 // ============================================================================
 // Demo Page Content
@@ -233,15 +237,17 @@ const demoPages: Record<string, PageMetadata> = {
               label: 'Organization',
               children: [
                 {
-                  id: '1-1', label: 'Sales Team', children: [
+                  id: '1-1',
+                  label: 'Sales Team',
+                  children: [
                     { id: '1-1-1', label: 'John Doe', icon: 'file' },
                     { id: '1-1-2', label: 'Jane Smith', icon: 'file' },
-                  ]
+                  ],
                 },
                 {
-                  id: '1-2', label: 'Marketing Team', children: [
-                    { id: '1-2-1', label: 'Bob Wilson', icon: 'file' },
-                  ]
+                  id: '1-2',
+                  label: 'Marketing Team',
+                  children: [{ id: '1-2-1', label: 'Bob Wilson', icon: 'file' }],
                 },
               ],
             },
@@ -323,12 +329,16 @@ const demoPages: Record<string, PageMetadata> = {
             { name: 'title', label: 'Title', dataType: 'string' },
             { name: 'author', label: 'Author', dataType: 'string' },
             {
-              name: 'status', label: 'Status', dataType: 'string', valueEditorType: 'select', values: [
+              name: 'status',
+              label: 'Status',
+              dataType: 'string',
+              valueEditorType: 'select',
+              values: [
                 { name: 'draft', label: 'Draft' },
                 { name: 'review', label: 'In Review' },
                 { name: 'published', label: 'Published' },
                 { name: 'archived', label: 'Archived' },
-              ]
+              ],
             },
             { name: 'createdAt', label: 'Created At', dataType: 'date', inputType: 'date' },
             { name: 'tags', label: 'Tags', dataType: 'string' },
@@ -391,30 +401,30 @@ const demoPages: Record<string, PageMetadata> = {
     ],
     layout: 'stack',
   },
-};
+}
 
 // ============================================================================
 // Runtime Main Component
 // ============================================================================
 
 const Runtime: React.FC = () => {
-  const { t } = useTranslation('common');
-  const { sidebarOpen, currentPage, toggleSidebar, setCurrentPage } = useRuntimeStore();
-  const { pages, setPages } = useMetadataStore();
+  const { t } = useTranslation('common')
+  const { sidebarOpen, currentPage, toggleSidebar, setCurrentPage } = useRuntimeStore()
+  const { pages, setPages } = useMetadataStore()
 
   // Load demo pages on mount
   useEffect(() => {
-    setPages(demoPages);
+    setPages(demoPages)
     if (!currentPage) {
-      setCurrentPage('dashboard');
+      setCurrentPage('dashboard')
     }
-  }, [setPages, setCurrentPage, currentPage]);
+  }, [setPages, setCurrentPage, currentPage])
 
-  const activePage = pages[currentPage || 'dashboard'];
+  const activePage = pages[currentPage || 'dashboard']
 
   const handleComponentError = (componentId: string, error: Error) => {
-    console.error(`Component ${componentId} error:`, error);
-  };
+    console.error(`Component ${componentId} error:`, error)
+  }
 
   return (
     <div className="min-h-screen bg-(--color-background)">
@@ -437,7 +447,9 @@ const Runtime: React.FC = () => {
         {/* Page Title */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-(--color-text-primary)">
-            {activePage?.title?.[useTenantStore.getState().locale] || activePage?.title?.['en'] || 'Page'}
+            {activePage?.title?.[useTenantStore.getState().locale] ||
+              activePage?.title?.['en'] ||
+              'Page'}
           </h1>
         </div>
 
@@ -449,13 +461,11 @@ const Runtime: React.FC = () => {
             onComponentError={handleComponentError}
           />
         ) : (
-          <div className="p-8 text-center text-(--color-text-muted)">
-            {t('app.loading')}
-          </div>
+          <div className="p-8 text-center text-(--color-text-muted)">{t('app.loading')}</div>
         )}
       </main>
     </div>
-  );
-};
+  )
+}
 
-export default Runtime;
+export default Runtime

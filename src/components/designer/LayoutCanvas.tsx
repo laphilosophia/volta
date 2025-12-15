@@ -65,6 +65,7 @@ const DroppableZone: React.FC<{
   return (
     <div
       ref={setNodeRef}
+      data-testid={`zone-${zoneId}`}
       className={`
         h-full transition-all duration-200
         ${isOver ? 'ring-2 ring-(--color-primary) ring-opacity-50 bg-(--color-primary) bg-opacity-5' : ''}
@@ -94,22 +95,23 @@ const Zone: React.FC<ZoneProps> = ({
   const containerClasses = isPreview
     ? 'relative h-full min-h-[50px] p-4 transition-all'
     : `relative h-full min-h-[200px] p-4 rounded-lg border-2 border-dashed transition-all
-       ${isEmpty
-      ? 'border-(--color-border) bg-(--color-surface-hover)'
-      : 'border-transparent bg-(--color-surface)'}
+       ${
+         isEmpty
+           ? 'border-(--color-border) bg-(--color-surface-hover)'
+           : 'border-transparent bg-(--color-surface)'
+       }
        ${isDraggingFromPalette ? 'border-(--color-primary) border-opacity-50' : ''}
       `
 
   return (
     <DroppableZone zoneId={zone.id} isDropTarget={isDraggingFromPalette} disabled={isPreview}>
-      <div
-        className={containerClasses}
-        onClick={() => !isPreview && onSelectComponent(null)}
-      >
+      <div className={containerClasses} onClick={() => !isPreview && onSelectComponent(null)}>
         {/* Zone Label - Hide in preview */}
         {!isPreview && (
-          <div className="absolute top-2 left-2 px-2 py-0.5 rounded text-xs font-medium
-            bg-(--color-surface-hover) text-(--color-text-muted) z-10">
+          <div
+            className="absolute top-2 left-2 px-2 py-0.5 rounded text-xs font-medium
+            bg-(--color-surface-hover) text-(--color-text-muted) z-10"
+          >
             {zone.name}
           </div>
         )}
@@ -144,7 +146,9 @@ const Zone: React.FC<ZoneProps> = ({
               /* Preview Mode: Render directly */
               <div className="space-y-4">
                 {zone.components.map((component) => (
-                  <DynamicRenderer key={component.id} metadata={component} />
+                  <div key={component.id} data-component-type={component.type}>
+                    <DynamicRenderer metadata={component} />
+                  </div>
                 ))}
               </div>
             ) : (
@@ -155,12 +159,13 @@ const Zone: React.FC<ZoneProps> = ({
               >
                 <div className="space-y-4">
                   {zone.components.map((component) => (
-                    <SortableItem
-                      key={component.id}
-                      component={component}
-                      isSelected={selectedComponent === component.id}
-                      onSelect={() => onSelectComponent(component.id)}
-                    />
+                    <div key={component.id} data-component-type={component.type}>
+                      <SortableItem
+                        component={component}
+                        isSelected={selectedComponent === component.id}
+                        onSelect={() => onSelectComponent(component.id)}
+                      />
+                    </div>
                   ))}
                 </div>
               </SortableContext>
@@ -184,7 +189,10 @@ type LayoutRenderer = (
 ) => React.ReactNode
 
 const layoutRenderers: Record<string, LayoutRenderer> = {
-  'sidebar-left': (layout, { onSelectComponent, selectedComponent, handleAddComponent, isDraggingFromPalette, mode }) => {
+  'sidebar-left': (
+    layout,
+    { onSelectComponent, selectedComponent, handleAddComponent, isDraggingFromPalette, mode }
+  ) => {
     const sidebar = layout.zones.find((z) => z.position === 'sidebar')
     const main = layout.zones.find((z) => z.position === 'main') || layout.zones[0]
 
@@ -216,7 +224,10 @@ const layoutRenderers: Record<string, LayoutRenderer> = {
     )
   },
 
-  'sidebar-right': (layout, { onSelectComponent, selectedComponent, handleAddComponent, isDraggingFromPalette, mode }) => {
+  'sidebar-right': (
+    layout,
+    { onSelectComponent, selectedComponent, handleAddComponent, isDraggingFromPalette, mode }
+  ) => {
     const sidebar = layout.zones.find((z) => z.position === 'sidebar')
     const main = layout.zones.find((z) => z.position === 'main') || layout.zones[0]
 
@@ -248,7 +259,10 @@ const layoutRenderers: Record<string, LayoutRenderer> = {
     )
   },
 
-  'two-column': (layout, { onSelectComponent, selectedComponent, handleAddComponent, isDraggingFromPalette, mode }) => (
+  'two-column': (
+    layout,
+    { onSelectComponent, selectedComponent, handleAddComponent, isDraggingFromPalette, mode }
+  ) => (
     <div className="flex h-full gap-4">
       {layout.zones.map((zone) => (
         <div key={zone.id} className="flex-1">
@@ -265,8 +279,16 @@ const layoutRenderers: Record<string, LayoutRenderer> = {
     </div>
   ),
 
-  'full-width': (layout, { onSelectComponent, selectedComponent, handleAddComponent, isDraggingFromPalette, mode }) => {
-    const zone = layout.zones[0] || { id: 'main', name: 'Main', position: 'main' as const, components: [] }
+  'full-width': (
+    layout,
+    { onSelectComponent, selectedComponent, handleAddComponent, isDraggingFromPalette, mode }
+  ) => {
+    const zone = layout.zones[0] || {
+      id: 'main',
+      name: 'Main',
+      position: 'main' as const,
+      components: [],
+    }
     return (
       <Zone
         zone={zone}
@@ -308,9 +330,10 @@ const LayoutCanvas: React.FC<LayoutCanvasProps> = ({
       style={{
         backgroundColor: 'var(--color-background)',
         // Hide grid in preview mode
-        backgroundImage: (gridEnabled && mode === 'edit')
-          ? 'radial-gradient(circle, var(--color-border) 1px, transparent 1px)'
-          : 'none',
+        backgroundImage:
+          gridEnabled && mode === 'edit'
+            ? 'radial-gradient(circle, var(--color-border) 1px, transparent 1px)'
+            : 'none',
         backgroundSize: '20px 20px',
       }}
     >

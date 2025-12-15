@@ -35,13 +35,7 @@ const DraggableComponentItem: React.FC<DraggableComponentItemProps> = ({
   onAddComponent,
   activeZone,
 }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    isDragging,
-  } = useDraggable({
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `palette-${componentId}`,
     data: {
       type: 'palette-component',
@@ -59,6 +53,7 @@ const DraggableComponentItem: React.FC<DraggableComponentItemProps> = ({
     <div
       ref={setNodeRef}
       style={style}
+      data-testid={`palette-${componentId}`}
       className={`
         w-full flex items-center gap-2 px-4 py-2 text-sm
         text-(--color-text-primary)
@@ -104,23 +99,22 @@ export const ComponentPaletteV2: React.FC<ComponentPaletteV2Props> = ({
 
   const toggleCategory = (category: string) => {
     setExpandedCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev, category]
+      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
     )
   }
 
   return (
-    <div className="w-64 border-r border-(--color-border) bg-(--color-surface) overflow-y-auto flex flex-col">
+    <div
+      data-testid="component-palette"
+      className="w-64 border-r border-(--color-border) bg-(--color-surface) overflow-y-auto flex flex-col"
+    >
       {/* Header */}
       <div className="p-4 border-b border-(--color-border)">
         <h2 className="text-sm font-semibold text-(--color-text-primary) flex items-center gap-2">
           <Layers className="w-4 h-4" />
           Components
         </h2>
-        <p className="text-xs text-(--color-text-muted) mt-1">
-          Click or drag to add
-        </p>
+        <p className="text-xs text-(--color-text-muted) mt-1">Click or drag to add</p>
         {activeZone && (
           <p className="text-xs text-(--color-primary) mt-1">Adding to: {activeZone}</p>
         )}
@@ -137,8 +131,9 @@ export const ComponentPaletteV2: React.FC<ComponentPaletteV2Props> = ({
             >
               {category}
               <ChevronDown
-                className={`w-4 h-4 transition-transform ${expandedCategories.includes(category) ? '' : '-rotate-90'
-                  }`}
+                className={`w-4 h-4 transition-transform ${
+                  expandedCategories.includes(category) ? '' : '-rotate-90'
+                }`}
               />
             </button>
             {expandedCategories.includes(category) && (

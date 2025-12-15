@@ -23,10 +23,7 @@ export const ErrorFallback: React.FC<ErrorFallbackProps> = ({
 }) => {
   if (compact) {
     return (
-      <div
-        className="p-4 rounded-xs border border-red-200 bg-red-50 text-red-700"
-        role="alert"
-      >
+      <div className="p-4 rounded-xs border border-red-200 bg-red-50 text-red-700" role="alert">
         <h4 className="font-semibold mb-1">Component Error</h4>
         <p className="text-xs text-red-600 mb-2">{error.message}</p>
         {onRetry && (
@@ -59,9 +56,7 @@ export const ErrorFallback: React.FC<ErrorFallbackProps> = ({
             />
           </svg>
         </div>
-        <h2 className="text-xl font-semibold text-(--color-text-primary) mb-2">
-          {title}
-        </h2>
+        <h2 className="text-xl font-semibold text-(--color-text-primary) mb-2">{title}</h2>
         <p className="text-sm text-(--color-text-muted) mb-6">
           {error.message || 'An unexpected error occurred'}
         </p>

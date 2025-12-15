@@ -1,12 +1,11 @@
-
-import { Code } from 'lucide-react';
-import React from 'react';
-import type { DataSourceConfig } from '../../../core/types/layout';
-import { FormInput, FormSection, FormSelect } from '../shared/DesignerForm';
+import { Code } from 'lucide-react'
+import React from 'react'
+import type { DataSourceConfig } from '../../../core/types/layout'
+import { FormInput, FormSection, FormSelect } from '../shared/DesignerForm'
 
 interface QueryDataSourceEditorProps {
-  config: DataSourceConfig;
-  onChange: (updates: Partial<DataSourceConfig>) => void;
+  config: DataSourceConfig
+  onChange: (updates: Partial<DataSourceConfig>) => void
 }
 
 export const QueryDataSourceEditor: React.FC<QueryDataSourceEditorProps> = ({
@@ -40,5 +39,5 @@ export const QueryDataSourceEditor: React.FC<QueryDataSourceEditorProps> = ({
         </div>
       </div>
     </FormSection>
-  );
-};
+  )
+}

@@ -11,6 +11,20 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './vitest.setup.ts',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'lcov'],
+      reportsDirectory: './coverage',
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        '**/*.d.ts',
+        '**/*.spec.ts',
+        '**/*.test.ts',
+        '**/index.ts',
+        '**/types/**',
+        '**/stories/**',
+      ],
+    },
   },
   plugins: [
     react(),

@@ -1,21 +1,21 @@
-import { createColumnHelper } from '@tanstack/react-table';
-import React, { useState } from 'react';
-import { z } from 'zod';
-import { useVoltaQuery } from '../hooks/useVoltaQuery';
-import { ActionForm } from './headless/ActionForm';
-import { HeadlessDataTable } from './headless/DataTable';
+import { createColumnHelper } from '@tanstack/react-table'
+import React, { useState } from 'react'
+import { z } from 'zod'
+import { useVoltaQuery } from '../hooks/useVoltaQuery'
+import { ActionForm } from './headless/ActionForm'
+import { HeadlessDataTable } from './headless/DataTable'
 
 interface User {
-  id: number;
-  name: string;
-  email: string;
-  company: { name: string };
+  id: number
+  name: string
+  email: string
+  company: { name: string }
 }
 
 interface Post {
-  id: number;
-  title: string;
-  body: string;
+  id: number
+  title: string
+  body: string
 }
 
 // Zod Schema for Creating a Post
@@ -23,26 +23,28 @@ const createPostSchema = z.object({
   title: z.string().min(3, 'Title is too short'),
   body: z.string().min(10, 'Body is too short'),
   userId: z.coerce.number().default(1),
-});
+})
 
 export const HeadlessDemo: React.FC = () => {
-  const [postId, setPostId] = useState(1);
+  const [postId, setPostId] = useState(1)
 
   // Column definitions for Headless Table
-  const columnHelper = createColumnHelper<User>();
+  const columnHelper = createColumnHelper<User>()
   const columns = [
-    columnHelper.accessor('id', { header: 'ID', cell: info => info.getValue() }),
-    columnHelper.accessor('name', { header: 'Name', cell: info => <span className="font-medium">{info.getValue()}</span> }),
+    columnHelper.accessor('id', { header: 'ID', cell: (info) => info.getValue() }),
+    columnHelper.accessor('name', {
+      header: 'Name',
+      cell: (info) => <span className="font-medium">{info.getValue()}</span>,
+    }),
     columnHelper.accessor('email', { header: 'Email' }),
     columnHelper.accessor('company.name', { header: 'Company' }),
-  ];
+  ]
 
   // 1. Fetching a single item with params (GET /posts/:id)
-  const { data: post, isLoading: postLoading } = useVoltaQuery<Post>('getPostById', { id: postId });
+  const { data: post, isLoading: postLoading } = useVoltaQuery<Post>('getPostById', { id: postId })
 
   return (
     <div className="p-8 space-y-12 bg-(--color-background) min-h-screen text-(--color-text-primary)">
-
       <div className="border-b border-(--color-border) pb-4 space-y-2">
         <h1 className="text-3xl font-bold text-(--color-primary)">⚡ Volta Headless Primitives</h1>
         <p className="text-(--color-text-secondary)">
@@ -75,7 +77,8 @@ export const HeadlessDemo: React.FC = () => {
           Schema-Driven Form
         </h2>
         <p className="text-sm text-(--color-text-secondary)">
-          <code>{`<ActionForm endpoint="createPost" schema={zodSchema} />`}</code> - Validates (Zod) and Submits (Mutation).
+          <code>{`<ActionForm endpoint="createPost" schema={zodSchema} />`}</code> - Validates (Zod)
+          and Submits (Mutation).
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -92,9 +95,19 @@ export const HeadlessDemo: React.FC = () => {
           <div className="space-y-4 p-6 bg-(--color-surface-hover) rounded-lg border border-(--color-border)">
             <h3 className="font-semibold text-lg">Live Preview (GET /posts/:id)</h3>
             <div className="flex items-center gap-2 mb-4">
-              <button onClick={() => setPostId(p => Math.max(1, p - 1))} className="px-2 py-1 bg-white border rounded">Prev</button>
+              <button
+                onClick={() => setPostId((p) => Math.max(1, p - 1))}
+                className="px-2 py-1 bg-white border rounded"
+              >
+                Prev
+              </button>
               <span className="font-mono">{postId}</span>
-              <button onClick={() => setPostId(p => p + 1)} className="px-2 py-1 bg-white border rounded">Next</button>
+              <button
+                onClick={() => setPostId((p) => p + 1)}
+                className="px-2 py-1 bg-white border rounded"
+              >
+                Next
+              </button>
             </div>
             {postLoading ? (
               <div className="animate-pulse">Loading...</div>
@@ -108,5 +121,5 @@ export const HeadlessDemo: React.FC = () => {
         </div>
       </section>
     </div>
-  );
-};
+  )
+}

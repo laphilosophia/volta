@@ -1,17 +1,16 @@
-
-import { Link } from 'lucide-react';
-import React from 'react';
-import type { DataSourceConfig } from '../../../core/types/layout';
-import { FormSection, FormSelect } from '../shared/DesignerForm';
+import { Link } from 'lucide-react'
+import React from 'react'
+import type { DataSourceConfig } from '../../../core/types/layout'
+import { FormSection, FormSelect } from '../shared/DesignerForm'
 
 interface BindingDataSourceEditorProps {
-  config: DataSourceConfig;
-  onChange: (updates: Partial<DataSourceConfig>) => void;
+  config: DataSourceConfig
+  onChange: (updates: Partial<DataSourceConfig>) => void
   availableBindings: {
-    componentId: string;
-    componentName: string;
-    outputs: { key: string; label: string }[];
-  }[];
+    componentId: string
+    componentName: string
+    outputs: { key: string; label: string }[]
+  }[]
 }
 
 export const BindingDataSourceEditor: React.FC<BindingDataSourceEditorProps> = ({
@@ -26,13 +25,15 @@ export const BindingDataSourceEditor: React.FC<BindingDataSourceEditorProps> = (
           <FormSelect
             label="Source Component"
             value={config.bindingSource?.componentId || ''}
-            onChange={(e) => onChange({
-              bindingSource: {
-                componentId: e.target.value,
-                outputKey: '', // Reset output key when component changes
-                transform: config.bindingSource?.transform,
-              }
-            })}
+            onChange={(e) =>
+              onChange({
+                bindingSource: {
+                  componentId: e.target.value,
+                  outputKey: '', // Reset output key when component changes
+                  transform: config.bindingSource?.transform,
+                },
+              })
+            }
           >
             <option value="">Select component...</option>
             {availableBindings.map((binding) => (
@@ -46,17 +47,19 @@ export const BindingDataSourceEditor: React.FC<BindingDataSourceEditorProps> = (
             <FormSelect
               label="Output Value"
               value={config.bindingSource?.outputKey || ''}
-              onChange={(e) => onChange({
-                bindingSource: {
-                  transform: config.bindingSource?.transform,
-                  componentId: config.bindingSource?.componentId || '',
-                  outputKey: e.target.value,
-                }
-              })}
+              onChange={(e) =>
+                onChange({
+                  bindingSource: {
+                    transform: config.bindingSource?.transform,
+                    componentId: config.bindingSource?.componentId || '',
+                    outputKey: e.target.value,
+                  },
+                })
+              }
             >
               <option value="">Select output...</option>
               {availableBindings
-                .find(b => b.componentId === config.bindingSource?.componentId)
+                .find((b) => b.componentId === config.bindingSource?.componentId)
                 ?.outputs.map((output) => (
                   <option key={output.key} value={output.key}>
                     {output.label}
@@ -78,5 +81,5 @@ export const BindingDataSourceEditor: React.FC<BindingDataSourceEditorProps> = (
         </div>
       )}
     </FormSection>
-  );
-};
+  )
+}

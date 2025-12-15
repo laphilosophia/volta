@@ -1,14 +1,15 @@
-
-import { Play, RefreshCw } from 'lucide-react';
-import React, { useState } from 'react';
-import type { DataSourceConfig } from '../../../core/types/layout';
-import { voltaConfig } from '../../../voltaboard.config';
-import { FormInput, FormSection, FormSelect } from '../shared/DesignerForm';
+import { Play, RefreshCw } from 'lucide-react'
+import React, { useState } from 'react'
+import type { DataSourceConfig } from '../../../core/types/layout'
+import { voltaConfig } from '../../../voltaboard.config'
+import { FormInput, FormSection, FormSelect } from '../shared/DesignerForm'
 
 interface ApiDataSourceEditorProps {
-  config: DataSourceConfig;
-  onChange: (updates: Partial<DataSourceConfig>) => void;
-  onTestConnection?: (config: DataSourceConfig) => Promise<{ success: boolean; data?: unknown; error?: string }>;
+  config: DataSourceConfig
+  onChange: (updates: Partial<DataSourceConfig>) => void
+  onTestConnection?: (
+    config: DataSourceConfig
+  ) => Promise<{ success: boolean; data?: unknown; error?: string }>
 }
 
 export const ApiDataSourceEditor: React.FC<ApiDataSourceEditorProps> = ({
@@ -16,24 +17,28 @@ export const ApiDataSourceEditor: React.FC<ApiDataSourceEditorProps> = ({
   onChange,
   onTestConnection,
 }) => {
-  const [testResult, setTestResult] = useState<{ success: boolean; data?: unknown; error?: string } | null>(null);
-  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{
+    success: boolean
+    data?: unknown
+    error?: string
+  } | null>(null)
+  const [isTesting, setIsTesting] = useState(false)
 
   const handleTest = async () => {
-    if (!onTestConnection) return;
+    if (!onTestConnection) return
 
-    setIsTesting(true);
-    setTestResult(null);
+    setIsTesting(true)
+    setTestResult(null)
 
     try {
-      const result = await onTestConnection(config);
-      setTestResult(result);
+      const result = await onTestConnection(config)
+      setTestResult(result)
     } catch (error) {
-      setTestResult({ success: false, error: String(error) });
+      setTestResult({ success: false, error: String(error) })
     } finally {
-      setIsTesting(false);
+      setIsTesting(false)
     }
-  };
+  }
 
   return (
     <FormSection>
@@ -45,12 +50,12 @@ export const ApiDataSourceEditor: React.FC<ApiDataSourceEditorProps> = ({
         <option value="">-- Choose an endpoint --</option>
         {Object.entries(voltaConfig.endpoints).map(([key, def]) => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const d = def as any;
+          const d = def as any
           return (
             <option key={key} value={key}>
               {key} ({d.method} {d.path})
             </option>
-          );
+          )
         })}
       </FormSelect>
 
@@ -59,7 +64,9 @@ export const ApiDataSourceEditor: React.FC<ApiDataSourceEditorProps> = ({
           <FormSelect
             label="Method"
             value={config.method || 'GET'}
-            onChange={(e) => onChange({ method: e.target.value as 'GET' | 'POST' | 'PUT' | 'DELETE' })}
+            onChange={(e) =>
+              onChange({ method: e.target.value as 'GET' | 'POST' | 'PUT' | 'DELETE' })
+            }
           >
             <option value="GET">GET</option>
             <option value="POST">POST</option>
@@ -113,16 +120,17 @@ export const ApiDataSourceEditor: React.FC<ApiDataSourceEditorProps> = ({
           </button>
 
           {testResult && (
-            <div className={`p-3 rounded-xs border ${testResult.success
-              ? 'bg-green-50 border-green-200'
-              : 'bg-red-50 border-red-200'
-              }`}>
-              <p className={`text-sm font-medium ${testResult.success ? 'text-green-700' : 'text-red-700'}`}>
+            <div
+              className={`p-3 rounded-xs border ${
+                testResult.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+              }`}
+            >
+              <p
+                className={`text-sm font-medium ${testResult.success ? 'text-green-700' : 'text-red-700'}`}
+              >
                 {testResult.success ? '✓ Connection successful' : '✗ Connection failed'}
               </p>
-              {testResult.error && (
-                <p className="text-xs text-red-600 mt-1">{testResult.error}</p>
-              )}
+              {testResult.error && <p className="text-xs text-red-600 mt-1">{testResult.error}</p>}
               {testResult.success && testResult.data !== undefined && testResult.data !== null ? (
                 <pre className="mt-2 p-2 text-xs bg-white rounded overflow-auto max-h-32">
                   {JSON.stringify(testResult.data, null, 2)}
@@ -133,5 +141,5 @@ export const ApiDataSourceEditor: React.FC<ApiDataSourceEditorProps> = ({
         </>
       )}
     </FormSection>
-  );
-};
+  )
+}

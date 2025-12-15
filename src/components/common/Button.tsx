@@ -57,7 +57,10 @@ interface IconButtonProps extends BaseButtonProps {
 }
 
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
-  ({ icon, label, variant = 'ghost', isActive = false, disabled, className = '', ...props }, ref) => {
+  (
+    { icon, label, variant = 'ghost', isActive = false, disabled, className = '', ...props },
+    ref
+  ) => {
     const styles = variantStyles[variant]
 
     return (
@@ -92,7 +95,19 @@ interface ToolbarButtonProps extends BaseButtonProps {
 }
 
 export const ToolbarButton = forwardRef<HTMLButtonElement, ToolbarButtonProps>(
-  ({ icon, children, variant = 'ghost', size = 'md', isActive = false, disabled, className = '', ...props }, ref) => {
+  (
+    {
+      icon,
+      children,
+      variant = 'ghost',
+      size = 'md',
+      isActive = false,
+      disabled,
+      className = '',
+      ...props
+    },
+    ref
+  ) => {
     const styles = variantStyles[variant]
 
     return (
@@ -127,7 +142,19 @@ interface ActionButtonProps extends BaseButtonProps {
 }
 
 export const ActionButton = forwardRef<HTMLButtonElement, ActionButtonProps>(
-  ({ icon, children, variant = 'primary', size = 'md', isLoading = false, disabled, className = '', ...props }, ref) => {
+  (
+    {
+      icon,
+      children,
+      variant = 'primary',
+      size = 'md',
+      isLoading = false,
+      disabled,
+      className = '',
+      ...props
+    },
+    ref
+  ) => {
     const styles = variantStyles[variant]
 
     return (
@@ -182,9 +209,11 @@ export const ButtonGroupItem = forwardRef<HTMLButtonElement, ButtonGroupItemProp
       ref={ref}
       className={`
         px-3 py-1.5 text-sm flex items-center gap-1 transition-colors
-        ${isActive
-          ? 'bg-(--color-primary) text-white'
-          : 'text-(--color-text-primary) hover:bg-(--color-surface-hover)'}
+        ${
+          isActive
+            ? 'bg-(--color-primary) text-white'
+            : 'text-(--color-text-primary) hover:bg-(--color-surface-hover)'
+        }
         ${className}
       `}
       {...props}

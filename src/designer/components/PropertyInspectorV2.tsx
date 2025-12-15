@@ -54,42 +54,48 @@ export const PropertyInspectorV2: React.FC<PropertyInspectorV2Props> = ({
 
   // Merge schema properties with current component props
   // This ensures all editable properties are shown
-  const allProperties = Object.keys(schemaProperties).reduce((acc, key) => {
-    const schemaProp = schemaProperties[key] as SchemaProperty
-    const currentValue = component.props[key]
+  const allProperties = Object.keys(schemaProperties).reduce(
+    (acc, key) => {
+      const schemaProp = schemaProperties[key] as SchemaProperty
+      const currentValue = component.props[key]
 
-    // Use current value if exists, otherwise use schema default or derive from type
-    if (currentValue !== undefined) {
-      acc[key] = currentValue
-    } else if (schemaProp.default !== undefined) {
-      acc[key] = schemaProp.default
-    } else {
-      // Default values based on type
-      switch (schemaProp.type) {
-        case 'string':
-          acc[key] = ''
-          break
-        case 'boolean':
-          acc[key] = false
-          break
-        case 'number':
-          acc[key] = 0
-          break
-        case 'array':
-          acc[key] = []
-          break
-        case 'object':
-          acc[key] = {}
-          break
-        default:
-          acc[key] = ''
+      // Use current value if exists, otherwise use schema default or derive from type
+      if (currentValue !== undefined) {
+        acc[key] = currentValue
+      } else if (schemaProp.default !== undefined) {
+        acc[key] = schemaProp.default
+      } else {
+        // Default values based on type
+        switch (schemaProp.type) {
+          case 'string':
+            acc[key] = ''
+            break
+          case 'boolean':
+            acc[key] = false
+            break
+          case 'number':
+            acc[key] = 0
+            break
+          case 'array':
+            acc[key] = []
+            break
+          case 'object':
+            acc[key] = {}
+            break
+          default:
+            acc[key] = ''
+        }
       }
-    }
-    return acc
-  }, {} as Record<string, unknown>)
+      return acc
+    },
+    {} as Record<string, unknown>
+  )
 
   return (
-    <div className="w-80 border-l border-(--color-border) bg-(--color-surface) overflow-y-auto flex flex-col">
+    <div
+      data-testid="property-inspector"
+      className="w-80 border-l border-(--color-border) bg-(--color-surface) overflow-y-auto flex flex-col"
+    >
       {/* Header */}
       <div className="p-4 border-b border-(--color-border)">
         <div className="flex items-center justify-between">
@@ -108,9 +114,10 @@ export const PropertyInspectorV2: React.FC<PropertyInspectorV2Props> = ({
         <button
           onClick={() => setActiveTab('props')}
           className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors
-            ${activeTab === 'props'
-              ? 'text-(--color-primary) border-b-2 border-(--color-primary)'
-              : 'text-(--color-text-muted) hover:text-(--color-text-primary)'
+            ${
+              activeTab === 'props'
+                ? 'text-(--color-primary) border-b-2 border-(--color-primary)'
+                : 'text-(--color-text-muted) hover:text-(--color-text-primary)'
             }`}
         >
           <Sliders className="w-4 h-4" />
@@ -119,9 +126,10 @@ export const PropertyInspectorV2: React.FC<PropertyInspectorV2Props> = ({
         <button
           onClick={() => setActiveTab('data')}
           className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors
-            ${activeTab === 'data'
-              ? 'text-(--color-primary) border-b-2 border-(--color-primary)'
-              : 'text-(--color-text-muted) hover:text-(--color-text-primary)'
+            ${
+              activeTab === 'data'
+                ? 'text-(--color-primary) border-b-2 border-(--color-primary)'
+                : 'text-(--color-text-muted) hover:text-(--color-text-primary)'
             }`}
         >
           <Database className="w-4 h-4" />

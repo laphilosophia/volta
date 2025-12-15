@@ -150,9 +150,7 @@ export const DesignerToolbar: React.FC<DesignerToolbarProps> = ({
           onClick={() => onZoomChange(zoom - 10)}
           disabled={zoom <= 25}
         />
-        <span className="text-sm text-(--color-text-secondary) w-12 text-center">
-          {zoom}%
-        </span>
+        <span className="text-sm text-(--color-text-secondary) w-12 text-center">{zoom}%</span>
         <IconButton
           icon={<ZoomIn className="w-4 h-4" />}
           label="Zoom In"
@@ -189,6 +187,4 @@ export const DesignerToolbar: React.FC<DesignerToolbarProps> = ({
 // Divider Component
 // ============================================================================
 
-const Divider: React.FC = () => (
-  <div className="w-px h-6 bg-(--color-border) mx-2" />
-)
+const Divider: React.FC = () => <div className="w-px h-6 bg-(--color-border) mx-2" />

@@ -2,41 +2,43 @@
 // Data Source Editor Component
 // ============================================================================
 
-import {
-  Database,
-  FileJson,
-  Globe,
-  Link
-} from 'lucide-react';
-import React, { useCallback } from 'react';
-import type { DataSourceConfig, DataSourceType } from '../../core/types/layout';
+import { Database, FileJson, Globe, Link } from 'lucide-react'
+import React, { useCallback } from 'react'
+import type { DataSourceConfig, DataSourceType } from '../../core/types/layout'
 import {
   ApiDataSourceEditor,
   BindingDataSourceEditor,
   QueryDataSourceEditor,
-  StaticDataSourceEditor
-} from './data-source';
+  StaticDataSourceEditor,
+} from './data-source'
 
 // ============================================================================
 // Types
 // ============================================================================
 
 interface DataSourceEditorProps {
-  config: DataSourceConfig;
-  onChange: (config: DataSourceConfig) => void;
+  config: DataSourceConfig
+  onChange: (config: DataSourceConfig) => void
   availableBindings?: {
-    componentId: string;
-    componentName: string;
-    outputs: { key: string; label: string }[];
-  }[];
-  onTestConnection?: (config: DataSourceConfig) => Promise<{ success: boolean; data?: unknown; error?: string }>;
+    componentId: string
+    componentName: string
+    outputs: { key: string; label: string }[]
+  }[]
+  onTestConnection?: (
+    config: DataSourceConfig
+  ) => Promise<{ success: boolean; data?: unknown; error?: string }>
 }
 
 // ============================================================================
 // Data Source Type Selector
 // ============================================================================
 
-const dataSourceTypes: { type: DataSourceType; label: string; icon: React.ReactNode; description: string }[] = [
+const dataSourceTypes: {
+  type: DataSourceType
+  label: string
+  icon: React.ReactNode
+  description: string
+}[] = [
   {
     type: 'api',
     label: 'API Endpoint',
@@ -61,7 +63,7 @@ const dataSourceTypes: { type: DataSourceType; label: string; icon: React.ReactN
     icon: <Link className="w-4 h-4" />,
     description: 'Bind to another component',
   },
-];
+]
 
 // ============================================================================
 // Main Component
@@ -73,14 +75,19 @@ const DataSourceEditor: React.FC<DataSourceEditorProps> = ({
   availableBindings = [],
   onTestConnection,
 }) => {
+  const handleTypeChange = useCallback(
+    (type: DataSourceType) => {
+      onChange({ ...config, type })
+    },
+    [config, onChange]
+  )
 
-  const handleTypeChange = useCallback((type: DataSourceType) => {
-    onChange({ ...config, type });
-  }, [config, onChange]);
-
-  const handleUpdate = useCallback((updates: Partial<DataSourceConfig>) => {
-    onChange({ ...config, ...updates });
-  }, [config, onChange]);
+  const handleUpdate = useCallback(
+    (updates: Partial<DataSourceConfig>) => {
+      onChange({ ...config, ...updates })
+    },
+    [config, onChange]
+  )
 
   return (
     <div className="space-y-4">
@@ -96,16 +103,24 @@ const DataSourceEditor: React.FC<DataSourceEditorProps> = ({
               onClick={() => handleTypeChange(type)}
               className={`
                 p-3 rounded-xs border text-left transition-all
-                ${config.type === type
-                  ? 'border-(--color-primary) bg-(--color-primary)/5'
-                  : 'border-(--color-border) hover:border-(--color-primary) hover:bg-(--color-surface-hover)'}
+                ${
+                  config.type === type
+                    ? 'border-(--color-primary) bg-(--color-primary)/5'
+                    : 'border-(--color-border) hover:border-(--color-primary) hover:bg-(--color-surface-hover)'
+                }
               `}
             >
               <div className="flex items-center gap-2 mb-1">
-                <span className={config.type === type ? 'text-(--color-primary)' : 'text-(--color-text-muted)'}>
+                <span
+                  className={
+                    config.type === type ? 'text-(--color-primary)' : 'text-(--color-text-muted)'
+                  }
+                >
                   {icon}
                 </span>
-                <span className={`text-sm font-medium ${config.type === type ? 'text-(--color-primary)' : 'text-(--color-text-primary)'}`}>
+                <span
+                  className={`text-sm font-medium ${config.type === type ? 'text-(--color-primary)' : 'text-(--color-text-primary)'}`}
+                >
                   {label}
                 </span>
               </div>
@@ -126,17 +141,11 @@ const DataSourceEditor: React.FC<DataSourceEditorProps> = ({
         )}
 
         {config.type === 'query' && (
-          <QueryDataSourceEditor
-            config={config}
-            onChange={handleUpdate}
-          />
+          <QueryDataSourceEditor config={config} onChange={handleUpdate} />
         )}
 
         {config.type === 'static' && (
-          <StaticDataSourceEditor
-            config={config}
-            onChange={handleUpdate}
-          />
+          <StaticDataSourceEditor config={config} onChange={handleUpdate} />
         )}
 
         {config.type === 'binding' && (
@@ -148,7 +157,7 @@ const DataSourceEditor: React.FC<DataSourceEditorProps> = ({
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default DataSourceEditor;
+export default DataSourceEditor

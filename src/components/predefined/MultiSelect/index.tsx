@@ -2,32 +2,32 @@
 // Multi Select Component
 // ============================================================================
 
-import { Check, ChevronDown, Search, X } from 'lucide-react';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Check, ChevronDown, Search, X } from 'lucide-react'
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface Option {
-  value: string;
-  label: string;
-  disabled?: boolean;
+  value: string
+  label: string
+  disabled?: boolean
 }
 
 interface MultiSelectProps {
-  options?: Option[];
-  value?: string[];
-  onChange?: (value: string[]) => void;
-  placeholder?: string;
-  multiple?: boolean;
-  searchable?: boolean;
-  disabled?: boolean;
+  options?: Option[]
+  value?: string[]
+  onChange?: (value: string[]) => void
+  placeholder?: string
+  multiple?: boolean
+  searchable?: boolean
+  disabled?: boolean
   dataSource?: {
-    query: Record<string, unknown>;
-    schema: Record<string, unknown>;
-  };
-  componentId?: string;
+    query: Record<string, unknown>
+    schema: Record<string, unknown>
+  }
+  componentId?: string
 }
 
-const MultiSelect: React.FC<MultiSelectProps> = ({
+const MultiSelectComponent: React.FC<MultiSelectProps> = ({
   options = [],
   value = [],
   onChange,
@@ -36,66 +36,73 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   searchable = true,
   disabled = false,
 }) => {
-  const { t } = useTranslation('components');
-  const [isOpen, setIsOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const containerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation('components')
+  const [isOpen, setIsOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  const containerRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+        setIsOpen(false)
       }
-    };
+    }
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   // Focus input when opening
   useEffect(() => {
     if (isOpen && searchable && inputRef.current) {
-      inputRef.current.focus();
+      inputRef.current.focus()
     }
-  }, [isOpen, searchable]);
+  }, [isOpen, searchable])
 
   const filteredOptions = useMemo(() => {
-    if (!search) return options;
-    return options.filter((opt) =>
-      opt.label.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [options, search]);
+    if (!search) return options
+    return options.filter((opt) => opt.label.toLowerCase().includes(search.toLowerCase()))
+  }, [options, search])
 
-  const handleToggle = useCallback((optionValue: string) => {
-    if (multiple) {
-      const newValue = value.includes(optionValue)
-        ? value.filter((v) => v !== optionValue)
-        : [...value, optionValue];
-      onChange?.(newValue);
-    } else {
-      onChange?.([optionValue]);
-      setIsOpen(false);
-    }
-  }, [multiple, value, onChange]);
+  const handleToggle = useCallback(
+    (optionValue: string) => {
+      if (multiple) {
+        const newValue = value.includes(optionValue)
+          ? value.filter((v) => v !== optionValue)
+          : [...value, optionValue]
+        onChange?.(newValue)
+      } else {
+        onChange?.([optionValue])
+        setIsOpen(false)
+      }
+    },
+    [multiple, value, onChange]
+  )
 
-  const handleRemove = useCallback((optionValue: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    onChange?.(value.filter((v) => v !== optionValue));
-  }, [value, onChange]);
+  const handleRemove = useCallback(
+    (optionValue: string, e: React.MouseEvent) => {
+      e.stopPropagation()
+      onChange?.(value.filter((v) => v !== optionValue))
+    },
+    [value, onChange]
+  )
 
-  const handleClear = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    onChange?.([]);
-    setSearch('');
-  }, [onChange]);
+  const handleClear = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      onChange?.([])
+      setSearch('')
+    },
+    [onChange]
+  )
 
   const selectedLabels = useMemo(() => {
     return value
       .map((v) => options.find((opt) => opt.value === v)?.label)
-      .filter(Boolean) as string[];
-  }, [value, options]);
+      .filter(Boolean) as string[]
+  }, [value, options])
 
   return (
     <div ref={containerRef} className="relative w-full">
@@ -131,9 +138,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                 </span>
               ))
             ) : (
-              <span className="text-sm text-(--color-text-primary)">
-                {selectedLabels[0]}
-              </span>
+              <span className="text-sm text-(--color-text-primary)">{selectedLabels[0]}</span>
             )
           ) : (
             <span className="text-sm text-(--color-text-muted)">
@@ -150,8 +155,9 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             />
           )}
           <ChevronDown
-            className={`w-4 h-4 text-(--color-text-muted) transition-transform duration-200 ${isOpen ? 'rotate-180' : ''
-              }`}
+            className={`w-4 h-4 text-(--color-text-muted) transition-transform duration-200 ${
+              isOpen ? 'rotate-180' : ''
+            }`}
           />
         </div>
       </button>
@@ -184,8 +190,8 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
           <div className="max-h-60 overflow-y-auto p-1">
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option) => {
-                const isSelected = value.includes(option.value);
-                const isDisabled = option.disabled;
+                const isSelected = value.includes(option.value)
+                const isDisabled = option.disabled
 
                 return (
                   <button
@@ -197,9 +203,11 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                       w-full flex items-center gap-2 px-3 py-2 rounded-md text-left text-sm
                       transition-colors duration-150
                       ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                      ${isSelected
-                        ? 'bg-(--color-primary-light) text-(--color-primary)'
-                        : 'hover:bg-(--color-surface-hover) text-(--color-text-primary)'}
+                      ${
+                        isSelected
+                          ? 'bg-(--color-primary-light) text-(--color-primary)'
+                          : 'hover:bg-(--color-surface-hover) text-(--color-text-primary)'
+                      }
                     `}
                   >
                     {multiple && (
@@ -207,9 +215,11 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                         className={`
                           w-4 h-4 rounded border flex items-center justify-center
                           transition-colors duration-150
-                          ${isSelected
-                            ? 'bg-(--color-primary) border-(--color-primary)'
-                            : 'border-(--color-border)'}
+                          ${
+                            isSelected
+                              ? 'bg-(--color-primary) border-(--color-primary)'
+                              : 'border-(--color-border)'
+                          }
                         `}
                       >
                         {isSelected && <Check className="w-3 h-3 text-white" />}
@@ -217,7 +227,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                     )}
                     {option.label}
                   </button>
-                );
+                )
               })
             ) : (
               <p className="px-3 py-2 text-sm text-(--color-text-muted) text-center">
@@ -235,7 +245,11 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default MultiSelect;
+MultiSelectComponent.displayName = 'MultiSelect'
+
+const MultiSelect = memo(MultiSelectComponent)
+
+export default MultiSelect

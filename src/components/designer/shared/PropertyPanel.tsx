@@ -67,7 +67,9 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
   const definition = componentRegistry.get(component.type)
 
   return (
-    <div className={`${width} border-l border-(--color-border) bg-(--color-surface) overflow-y-auto flex flex-col`}>
+    <div
+      className={`${width} border-l border-(--color-border) bg-(--color-surface) overflow-y-auto flex flex-col`}
+    >
       {/* Header */}
       <div className="p-4 border-b border-(--color-border)">
         <div className="flex items-center justify-between">
@@ -87,9 +89,11 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
           <button
             onClick={() => setActiveTab('props')}
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors
-              ${activeTab === 'props'
-                ? 'text-(--color-primary) border-b-2 border-(--color-primary)'
-                : 'text-(--color-text-muted) hover:text-(--color-text-primary)'}`}
+              ${
+                activeTab === 'props'
+                  ? 'text-(--color-primary) border-b-2 border-(--color-primary)'
+                  : 'text-(--color-text-muted) hover:text-(--color-text-primary)'
+              }`}
           >
             <Sliders className="w-4 h-4" />
             Properties
@@ -97,9 +101,11 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
           <button
             onClick={() => setActiveTab('data')}
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors
-              ${activeTab === 'data'
-                ? 'text-(--color-primary) border-b-2 border-(--color-primary)'
-                : 'text-(--color-text-muted) hover:text-(--color-text-primary)'}`}
+              ${
+                activeTab === 'data'
+                  ? 'text-(--color-primary) border-b-2 border-(--color-primary)'
+                  : 'text-(--color-text-muted) hover:text-(--color-text-primary)'
+              }`}
           >
             <Database className="w-4 h-4" />
             Data Source
@@ -232,9 +238,7 @@ const PropertyField: React.FC<PropertyFieldProps> = ({ name, value, onChange }) 
 
   return (
     <div>
-      <label className="block text-xs font-medium text-(--color-text-secondary) mb-1">
-        {name}
-      </label>
+      <label className="block text-xs font-medium text-(--color-text-secondary) mb-1">{name}</label>
       <input
         type="text"
         value={String(value)}

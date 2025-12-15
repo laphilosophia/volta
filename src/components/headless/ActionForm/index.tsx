@@ -1,14 +1,14 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, type DefaultValues, type Path } from 'react-hook-form';
-import { z } from 'zod';
-import { useVoltaMutation } from '../../../hooks/useVoltaMutation';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm, type DefaultValues, type Path } from 'react-hook-form'
+import { z } from 'zod'
+import { useVoltaMutation } from '../../../hooks/useVoltaMutation'
 
 interface ActionFormProps<T extends z.ZodObject<z.ZodRawShape>> {
-  endpoint: string;
-  schema: T;
-  defaultValues?: Partial<z.infer<T>>;
-  onSuccess?: (data: unknown) => void;
-  title?: string;
+  endpoint: string
+  schema: T
+  defaultValues?: Partial<z.infer<T>>
+  onSuccess?: (data: unknown) => void
+  title?: string
 }
 
 export function ActionForm<T extends z.ZodObject<z.ZodRawShape>>({
@@ -18,7 +18,7 @@ export function ActionForm<T extends z.ZodObject<z.ZodRawShape>>({
   onSuccess,
   title,
 }: ActionFormProps<T>) {
-  type FormData = z.infer<T>;
+  type FormData = z.infer<T>
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   const {
@@ -28,19 +28,19 @@ export function ActionForm<T extends z.ZodObject<z.ZodRawShape>>({
   } = useForm<FormData>({
     resolver: zodResolver(schema as any),
     defaultValues: defaultValues as DefaultValues<FormData>,
-  });
+  })
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
   const mutation = useVoltaMutation<unknown, FormData>(endpoint, {
     onSuccess: (data) => {
-      onSuccess?.(data);
+      onSuccess?.(data)
     },
-  });
+  })
 
   // Simple field generation based on schema shape (naive implementation for demo)
   // In a real world scenario, we would parse the Zod schema more robustly or use a 'fields' prop.
   // For this prototype, we'll assume the schema is a simple ZodObject.
-  const shape = schema.shape;
+  const shape = schema.shape
 
   return (
     <div className="p-6 border border-(--color-border) rounded-lg bg-(--color-surface)">
@@ -60,9 +60,9 @@ export function ActionForm<T extends z.ZodObject<z.ZodRawShape>>({
 
       <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
         {Object.keys(shape).map((key) => {
-          const fieldName = key as Path<FormData>;
+          const fieldName = key as Path<FormData>
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const fieldError = (errors as any)[fieldName];
+          const fieldError = (errors as any)[fieldName]
           return (
             <div key={fieldName}>
               <label className="block text-sm font-medium text-(--color-text-secondary) mb-1 capitalize">
@@ -80,7 +80,7 @@ export function ActionForm<T extends z.ZodObject<z.ZodRawShape>>({
                 <p className="mt-1 text-xs text-red-500">{fieldError.message as string}</p>
               )}
             </div>
-          );
+          )
         })}
 
         <button
@@ -92,5 +92,5 @@ export function ActionForm<T extends z.ZodObject<z.ZodRawShape>>({
         </button>
       </form>
     </div>
-  );
+  )
 }

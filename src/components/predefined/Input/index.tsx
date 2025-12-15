@@ -2,27 +2,35 @@
 // Input Component
 // ============================================================================
 
-import { AlertCircle, Eye, EyeOff } from 'lucide-react';
-import React, { forwardRef, useId } from 'react';
-import { useTranslation } from 'react-i18next';
+import { AlertCircle, Eye, EyeOff } from 'lucide-react'
+import React, { forwardRef, useId } from 'react'
+import { useTranslation } from 'react-i18next'
+import {
+  formSizeClasses,
+  formSizeToIconSize,
+  formVariantClasses,
+  iconSizeClasses,
+  type FormSize,
+  type FormVariant,
+} from '../../../utils'
 
-type InputType = 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search';
+type InputType = 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search'
 
 interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'size'> {
-  type?: InputType;
-  label?: string;
-  error?: string;
-  hint?: string;
-  leftIcon?: React.ReactNode;
-  rightIcon?: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg';
-  variant?: 'default' | 'filled' | 'ghost';
-  fullWidth?: boolean;
+  type?: InputType
+  label?: string
+  error?: string
+  hint?: string
+  leftIcon?: React.ReactNode
+  rightIcon?: React.ReactNode
+  size?: FormSize
+  variant?: FormVariant
+  fullWidth?: boolean
   dataSource?: {
-    query: Record<string, unknown>;
-    schema: Record<string, unknown>;
-  };
-  componentId?: string;
+    query: Record<string, unknown>
+    schema: Record<string, unknown>
+  }
+  componentId?: string
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
@@ -44,49 +52,16 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     },
     ref
   ) => {
-    const { t } = useTranslation('components');
-    const id = useId();
-    const [showPassword, setShowPassword] = React.useState(false);
+    const { t } = useTranslation('components')
+    const id = useId()
+    const [showPassword, setShowPassword] = React.useState(false)
 
-    const inputId = props.id || id;
-    const hasError = !!error;
-    const isPassword = type === 'password';
-    const inputType = isPassword && showPassword ? 'text' : type;
+    const inputId = props.id || id
+    const hasError = !!error
+    const isPassword = type === 'password'
+    const inputType = isPassword && showPassword ? 'text' : type
 
-    const sizeClasses = {
-      sm: 'h-8 text-sm px-2.5',
-      md: 'h-10 text-sm px-3',
-      lg: 'h-12 text-base px-4',
-    };
-
-    const variantClasses = {
-      default: `
-        bg-[var(--color-surface)]
-        border border-[var(--color-border)]
-        focus:border-[var(--color-primary)]
-        focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-opacity-20
-      `,
-      filled: `
-        bg-[var(--color-surface-hover)]
-        border border-transparent
-        focus:bg-[var(--color-surface)]
-        focus:border-[var(--color-primary)]
-        focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-opacity-20
-      `,
-      ghost: `
-        bg-transparent
-        border border-transparent
-        hover:bg-[var(--color-surface-hover)]
-        focus:border-[var(--color-primary)]
-        focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-opacity-20
-      `,
-    };
-
-    const iconSizes = {
-      sm: 'w-4 h-4',
-      md: 'w-4 h-4',
-      lg: 'w-5 h-5',
-    };
+    const iconSize = iconSizeClasses[formSizeToIconSize[size]]
 
     return (
       <div className={`${fullWidth ? 'w-full' : ''} ${className}`}>
@@ -113,7 +88,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               className={`
                 absolute left-3 top-1/2 -translate-y-1/2
                 text-(--color-text-muted)
-                ${iconSizes[size]}
+                ${iconSize}
               `}
             >
               {leftIcon}
@@ -136,8 +111,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               transition-all duration-200
               outline-none
               disabled:opacity-50 disabled:cursor-not-allowed
-              ${sizeClasses[size]}
-              ${variantClasses[variant]}
+              ${formSizeClasses[size]}
+              ${formVariantClasses[variant]}
               ${leftIcon ? 'pl-10' : ''}
               ${rightIcon || isPassword ? 'pr-10' : ''}
               ${hasError ? 'border-red-500 focus:border-red-500 focus:ring-red-500 focus:ring-opacity-20' : ''}
@@ -151,7 +126,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               className={`
                 absolute right-3 top-1/2 -translate-y-1/2
                 text-(--color-text-muted)
-                ${iconSizes[size]}
+                ${iconSize}
               `}
             >
               {isPassword ? (
@@ -162,11 +137,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                   tabIndex={-1}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? (
-                    <EyeOff className={iconSizes[size]} />
-                  ) : (
-                    <Eye className={iconSizes[size]} />
-                  )}
+                  {showPassword ? <EyeOff className={iconSize} /> : <Eye className={iconSize} />}
                 </button>
               ) : (
                 rightIcon
@@ -189,18 +160,15 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 
         {/* Hint */}
         {hint && !hasError && (
-          <p
-            id={`${inputId}-hint`}
-            className="mt-1.5 text-sm text-(--color-text-muted)"
-          >
+          <p id={`${inputId}-hint`} className="mt-1.5 text-sm text-(--color-text-muted)">
             {hint}
           </p>
         )}
       </div>
-    );
+    )
   }
-);
+)
 
-Input.displayName = 'Input';
+Input.displayName = 'Input'
 
-export default Input;
+export default Input

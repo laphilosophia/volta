@@ -67,7 +67,9 @@ const PaletteDragOverlay: React.FC<{ componentType: string | null }> = ({ compon
 // Zone Component Drag Overlay - Shows actual component when reordering
 // ============================================================================
 
-const ZoneComponentDragOverlay: React.FC<{ component: ComponentMetadata | null }> = ({ component }) => {
+const ZoneComponentDragOverlay: React.FC<{ component: ComponentMetadata | null }> = ({
+  component,
+}) => {
   if (!component) return null
 
   return (
@@ -85,6 +87,10 @@ const Designer: React.FC = () => {
   const sensors = useDndSensors()
 
   // Zundo Temporal Store
+  // Note: zundo v2 attaches temporal as a property on the store.
+  // Type assertion needed due to zundo's dynamic store augmentation.
+  // See: https://github.com/charkour/zundo for typing patterns.
+  // TODO: Improve typing when zundo provides better TypeScript support
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const temporal = (useDesignerStore as any).temporal
   const { undo, redo, pastStates, futureStates } = useStore(temporal) as {
@@ -140,18 +146,18 @@ const Designer: React.FC = () => {
     const storedPage = pages[currentPageId]
     return storedPage
       ? {
-        pageId: storedPage.pageId,
-        title: storedPage.title,
-        description: storedPage.description,
-        components: storedPage.components,
-        layout: currentLayout,
-      }
+          pageId: storedPage.pageId,
+          title: storedPage.title,
+          description: storedPage.description,
+          components: storedPage.components,
+          layout: currentLayout,
+        }
       : {
-        pageId: currentPageId,
-        title: { en: 'Designer Demo' },
-        components: [],
-        layout: currentLayout,
-      }
+          pageId: currentPageId,
+          title: { en: 'Designer Demo' },
+          components: [],
+          layout: currentLayout,
+        }
   }, [pages, currentPageId, currentLayout])
 
   // Helper to find component by ID across all zones
@@ -341,9 +347,8 @@ const Designer: React.FC = () => {
   }, [currentLayout, currentPage, currentPageId, setPage, setDirty])
 
   const selectedComponentData = selectedComponent
-    ? currentLayout.zones
-      .flatMap((z) => z.components)
-      .find((c) => c.id === selectedComponent) || null
+    ? currentLayout.zones.flatMap((z) => z.components).find((c) => c.id === selectedComponent) ||
+      null
     : null
 
   return (
@@ -353,7 +358,10 @@ const Designer: React.FC = () => {
       onDragStart={handleGlobalDragStart}
       onDragEnd={handleGlobalDragEnd}
     >
-      <div className="h-screen flex flex-col bg-(--color-background)">
+      <div
+        className="h-screen flex flex-col bg-(--color-background)"
+        data-testid="designer-container"
+      >
         <ToolbarV2
           mode={mode}
           onModeChange={setMode}
@@ -375,7 +383,7 @@ const Designer: React.FC = () => {
           showHistory={showHistory}
         />
 
-        <div className="flex-1 flex overflow-hidden relative">
+        <div className="flex-1 flex overflow-hidden relative" data-testid="designer-canvas">
           {mode === 'edit' && (
             <ComponentPaletteV2 onAddComponent={handleAddComponent} activeZone={activeZone} />
           )}
@@ -388,7 +396,9 @@ const Designer: React.FC = () => {
             onComponentReorder={handleComponentReorder}
             zoom={zoom}
             gridEnabled={gridEnabled}
-            isDraggingFromPalette={dragState.isDragging && dragState.activeType === 'palette-component'}
+            isDraggingFromPalette={
+              dragState.isDragging && dragState.activeType === 'palette-component'
+            }
             mode={mode}
           />
 

@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+roadmap.md
+
+# Test outputs
+coverage
+playwright-report
+test-results

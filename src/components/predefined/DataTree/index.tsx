@@ -2,29 +2,29 @@
 // Data Tree Component
 // ============================================================================
 
-import { ChevronDown, ChevronRight, File, Folder, FolderOpen } from 'lucide-react';
-import React, { useCallback, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { ChevronDown, ChevronRight, File, Folder, FolderOpen } from 'lucide-react'
+import React, { useCallback, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface TreeNode {
-  id: string;
-  label: string;
-  children?: TreeNode[];
-  icon?: 'folder' | 'file';
-  data?: Record<string, unknown>;
+  id: string
+  label: string
+  children?: TreeNode[]
+  icon?: 'folder' | 'file'
+  data?: Record<string, unknown>
 }
 
 interface DataTreeProps {
-  data?: TreeNode[];
+  data?: TreeNode[]
   dataSource?: {
-    query: Record<string, unknown>;
-    schema: Record<string, unknown>;
-  };
-  expandable?: boolean;
-  selectable?: boolean;
-  onSelect?: (node: TreeNode) => void;
-  defaultExpanded?: string[];
-  componentId?: string;
+    query: Record<string, unknown>
+    schema: Record<string, unknown>
+  }
+  expandable?: boolean
+  selectable?: boolean
+  onSelect?: (node: TreeNode) => void
+  defaultExpanded?: string[]
+  componentId?: string
 }
 
 const DataTree: React.FC<DataTreeProps> = ({
@@ -34,54 +34,60 @@ const DataTree: React.FC<DataTreeProps> = ({
   onSelect,
   defaultExpanded = [],
 }) => {
-  const { t } = useTranslation('components');
-  const [expanded, setExpanded] = useState<Set<string>>(new Set(defaultExpanded));
-  const [selected, setSelected] = useState<string | null>(null);
+  const { t } = useTranslation('components')
+  const [expanded, setExpanded] = useState<Set<string>>(new Set(defaultExpanded))
+  const [selected, setSelected] = useState<string | null>(null)
 
-  const toggleExpand = useCallback((nodeId: string) => {
-    if (!expandable) return;
+  const toggleExpand = useCallback(
+    (nodeId: string) => {
+      if (!expandable) return
 
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(nodeId)) {
-        next.delete(nodeId);
-      } else {
-        next.add(nodeId);
-      }
-      return next;
-    });
-  }, [expandable]);
+      setExpanded((prev) => {
+        const next = new Set(prev)
+        if (next.has(nodeId)) {
+          next.delete(nodeId)
+        } else {
+          next.add(nodeId)
+        }
+        return next
+      })
+    },
+    [expandable]
+  )
 
-  const handleSelect = useCallback((node: TreeNode) => {
-    if (!selectable) return;
+  const handleSelect = useCallback(
+    (node: TreeNode) => {
+      if (!selectable) return
 
-    setSelected(node.id);
-    onSelect?.(node);
-  }, [selectable, onSelect]);
+      setSelected(node.id)
+      onSelect?.(node)
+    },
+    [selectable, onSelect]
+  )
 
   const expandAll = useCallback(() => {
-    const allIds = new Set<string>();
+    const allIds = new Set<string>()
     const collectIds = (nodes: TreeNode[]) => {
       nodes.forEach((node) => {
         if (node.children?.length) {
-          allIds.add(node.id);
-          collectIds(node.children);
+          allIds.add(node.id)
+          collectIds(node.children)
         }
-      });
-    };
-    collectIds(data);
-    setExpanded(allIds);
-  }, [data]);
+      })
+    }
+    collectIds(data)
+    setExpanded(allIds)
+  }, [data])
 
   const collapseAll = useCallback(() => {
-    setExpanded(new Set());
-  }, []);
+    setExpanded(new Set())
+  }, [])
 
   const renderNode = useMemo(() => {
     const render = (node: TreeNode, level: number = 0): React.ReactNode => {
-      const hasChildren = node.children && node.children.length > 0;
-      const isExpanded = expanded.has(node.id);
-      const isSelected = selected === node.id;
+      const hasChildren = node.children && node.children.length > 0
+      const isExpanded = expanded.has(node.id)
+      const isSelected = selected === node.id
 
       return (
         <div key={node.id} className="select-none">
@@ -94,8 +100,8 @@ const DataTree: React.FC<DataTreeProps> = ({
             `}
             style={{ paddingLeft: `${level * 1.25 + 0.5}rem` }}
             onClick={() => {
-              if (hasChildren) toggleExpand(node.id);
-              handleSelect(node);
+              if (hasChildren) toggleExpand(node.id)
+              handleSelect(node)
             }}
           >
             {/* Expand/Collapse Icon */}
@@ -103,8 +109,8 @@ const DataTree: React.FC<DataTreeProps> = ({
               <button
                 className="p-0.5 hover:bg-(--color-surface-hover) rounded transition-transform duration-200"
                 onClick={(e) => {
-                  e.stopPropagation();
-                  toggleExpand(node.id);
+                  e.stopPropagation()
+                  toggleExpand(node.id)
                 }}
               >
                 {isExpanded ? (
@@ -131,9 +137,7 @@ const DataTree: React.FC<DataTreeProps> = ({
             )}
 
             {/* Node Label */}
-            <span className="text-sm text-(--color-text-primary)">
-              {node.label}
-            </span>
+            <span className="text-sm text-(--color-text-primary)">{node.label}</span>
           </div>
 
           {/* Children */}
@@ -143,35 +147,28 @@ const DataTree: React.FC<DataTreeProps> = ({
             </div>
           )}
         </div>
-      );
-    };
+      )
+    }
 
-    return render;
-  }, [expanded, selected, toggleExpand, handleSelect]);
+    return render
+  }, [expanded, selected, toggleExpand, handleSelect])
 
   if (data.length === 0) {
     return (
       <div className="p-4 rounded-xs border border-(--color-border) bg-(--color-surface)">
-        <p className="text-sm text-(--color-text-muted) text-center">
-          {t('dataTree.noData')}
-        </p>
+        <p className="text-sm text-(--color-text-muted) text-center">{t('dataTree.noData')}</p>
       </div>
-    );
+    )
   }
 
   return (
     <div className="rounded-xs border border-(--color-border) bg-(--color-surface) overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-(--color-border) bg-(--color-surface-hover)">
-        <h3 className="text-sm font-semibold text-(--color-text-primary)">
-          {t('dataTree.title')}
-        </h3>
+        <h3 className="text-sm font-semibold text-(--color-text-primary)">{t('dataTree.title')}</h3>
         {expandable && (
           <div className="flex gap-2">
-            <button
-              onClick={expandAll}
-              className="text-xs text-(--color-primary) hover:underline"
-            >
+            <button onClick={expandAll} className="text-xs text-(--color-primary) hover:underline">
               {t('dataTree.expand')}
             </button>
             <span className="text-(--color-text-muted)">|</span>
@@ -190,7 +187,9 @@ const DataTree: React.FC<DataTreeProps> = ({
         {data.map((node) => renderNode(node, 0))}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default DataTree;
+DataTree.displayName = 'DataTree'
+
+export default DataTree

@@ -10,7 +10,9 @@ import { useTenantStore } from './core/state-management'
 // Lazy-loaded modules for code splitting
 const Designer = lazy(() => import('./designer'))
 const Runtime = lazy(() => import('./runtime'))
-const HeadlessDemo = lazy(() => import('./components/HeadlessDemo').then(module => ({ default: module.HeadlessDemo })))
+const HeadlessDemo = lazy(() =>
+  import('./components/HeadlessDemo').then((module) => ({ default: module.HeadlessDemo }))
+)
 
 // ============================================================================
 // Main App Component

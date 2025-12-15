@@ -1,11 +1,10 @@
-
-import React from 'react';
-import type { DataSourceConfig } from '../../../core/types/layout';
-import { FormSection, FormTextarea } from '../shared/DesignerForm';
+import React from 'react'
+import type { DataSourceConfig } from '../../../core/types/layout'
+import { FormSection, FormTextarea } from '../shared/DesignerForm'
 
 interface StaticDataSourceEditorProps {
-  config: DataSourceConfig;
-  onChange: (updates: Partial<DataSourceConfig>) => void;
+  config: DataSourceConfig
+  onChange: (updates: Partial<DataSourceConfig>) => void
 }
 
 export const StaticDataSourceEditor: React.FC<StaticDataSourceEditorProps> = ({
@@ -16,16 +15,18 @@ export const StaticDataSourceEditor: React.FC<StaticDataSourceEditorProps> = ({
     <FormSection>
       <FormTextarea
         label="Static Data (JSON)"
-        value={typeof config.staticData === 'string'
-          ? config.staticData
-          : JSON.stringify(config.staticData || [], null, 2)}
+        value={
+          typeof config.staticData === 'string'
+            ? config.staticData
+            : JSON.stringify(config.staticData || [], null, 2)
+        }
         onChange={(e) => {
           try {
-            const parsed = JSON.parse(e.target.value);
-            onChange({ staticData: parsed });
+            const parsed = JSON.parse(e.target.value)
+            onChange({ staticData: parsed })
           } catch {
             // Keep as string if invalid JSON
-            onChange({ staticData: e.target.value });
+            onChange({ staticData: e.target.value })
           }
         }}
         placeholder='[{"id": 1, "name": "Sample"}]'
@@ -33,5 +34,5 @@ export const StaticDataSourceEditor: React.FC<StaticDataSourceEditorProps> = ({
         className="font-mono"
       />
     </FormSection>
-  );
-};
+  )
+}

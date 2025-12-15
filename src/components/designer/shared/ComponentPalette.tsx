@@ -36,9 +36,7 @@ export const ComponentPalette: React.FC<ComponentPaletteProps> = ({
     if (!collapsible) return
 
     setExpandedCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev, category]
+      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
     )
   }
 
@@ -51,9 +49,7 @@ export const ComponentPalette: React.FC<ComponentPaletteProps> = ({
           Components
         </h2>
         {activeZone && (
-          <p className="text-xs text-(--color-primary) mt-1">
-            Adding to: {activeZone}
-          </p>
+          <p className="text-xs text-(--color-primary) mt-1">Adding to: {activeZone}</p>
         )}
       </div>
 

@@ -1,0 +1,11 @@
+node_modules
+dist
+coverage
+.husky
+*.min.js
+*.bundle.js
+package-lock.json
+storybook-static
+playwright-report
+test-results
+plop-templates

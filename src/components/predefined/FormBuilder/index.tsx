@@ -10,16 +10,16 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
-} from '@dnd-kit/core';
+} from '@dnd-kit/core'
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { zodResolver } from '@hookform/resolvers/zod';
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
   AlertCircle,
   Calendar,
@@ -38,10 +38,10 @@ import {
   ToggleLeft,
   Trash2,
   Type,
-} from 'lucide-react';
-import React, { useCallback, useMemo, useState } from 'react';
-import { Controller, useForm, type FieldValues, type SubmitHandler } from 'react-hook-form';
-import { z } from 'zod';
+} from 'lucide-react'
+import React, { useCallback, useMemo, useState } from 'react'
+import { Controller, useForm, type FieldValues, type SubmitHandler } from 'react-hook-form'
+import { z } from 'zod'
 
 // ============================================================================
 // Types
@@ -55,38 +55,38 @@ export type FieldType =
   | 'textarea'
   | 'select'
   | 'checkbox'
-  | 'radio';
+  | 'radio'
 
 export interface FormFieldDefinition {
-  id: string;
-  type: FieldType;
-  name: string;
-  label: string;
-  placeholder?: string;
-  required?: boolean;
+  id: string
+  type: FieldType
+  name: string
+  label: string
+  placeholder?: string
+  required?: boolean
   validation?: {
-    min?: number;
-    max?: number;
-    minLength?: number;
-    maxLength?: number;
-    pattern?: string;
-    customMessage?: string;
-  };
-  options?: { value: string; label: string }[];
-  defaultValue?: string | number | boolean;
+    min?: number
+    max?: number
+    minLength?: number
+    maxLength?: number
+    pattern?: string
+    customMessage?: string
+  }
+  options?: { value: string; label: string }[]
+  defaultValue?: string | number | boolean
 }
 
 export interface FormBuilderProps {
   /** Initial form fields */
-  initialFields?: FormFieldDefinition[];
+  initialFields?: FormFieldDefinition[]
   /** Callback when form structure changes */
-  onFieldsChange?: (fields: FormFieldDefinition[]) => void;
+  onFieldsChange?: (fields: FormFieldDefinition[]) => void
   /** Callback when form is submitted */
-  onSubmit?: (data: FieldValues) => void;
+  onSubmit?: (data: FieldValues) => void
   /** Preview mode */
-  previewMode?: boolean;
+  previewMode?: boolean
   /** Component ID for metadata */
-  componentId?: string;
+  componentId?: string
 }
 
 // ============================================================================
@@ -102,7 +102,7 @@ const fieldTypeIcons: Record<FieldType, React.ReactNode> = {
   select: <List className="w-4 h-4" />,
   checkbox: <ToggleLeft className="w-4 h-4" />,
   radio: <List className="w-4 h-4" />,
-};
+}
 
 const fieldTypeLabels: Record<FieldType, string> = {
   text: 'Text',
@@ -113,7 +113,7 @@ const fieldTypeLabels: Record<FieldType, string> = {
   select: 'Dropdown',
   checkbox: 'Checkbox',
   radio: 'Radio',
-};
+}
 
 // ============================================================================
 // Default Fields
@@ -150,17 +150,17 @@ const defaultFormFields: FormFieldDefinition[] = [
       { value: 'hr', label: 'Human Resources' },
     ],
   },
-];
+]
 
 // ============================================================================
 // Sortable Field Item
 // ============================================================================
 
 interface SortableFieldItemProps {
-  field: FormFieldDefinition;
-  onEdit: (field: FormFieldDefinition) => void;
-  onDelete: (id: string) => void;
-  isEditing: boolean;
+  field: FormFieldDefinition
+  onEdit: (field: FormFieldDefinition) => void
+  onDelete: (id: string) => void
+  isEditing: boolean
 }
 
 const SortableFieldItem: React.FC<SortableFieldItemProps> = ({
@@ -169,20 +169,15 @@ const SortableFieldItem: React.FC<SortableFieldItemProps> = ({
   onDelete,
   isEditing,
 }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: field.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: field.id,
+  })
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-  };
+  }
 
   return (
     <div
@@ -190,9 +185,11 @@ const SortableFieldItem: React.FC<SortableFieldItemProps> = ({
       style={style}
       className={`
         flex items-center gap-3 p-3 rounded-xs border
-        ${isEditing
-          ? 'border-(--color-primary) bg-(--color-primary-light)'
-          : 'border-(--color-border) bg-(--color-surface)'}
+        ${
+          isEditing
+            ? 'border-(--color-primary) bg-(--color-primary-light)'
+            : 'border-(--color-border) bg-(--color-surface)'
+        }
         ${isDragging ? 'shadow-lg' : ''}
         transition-colors
       `}
@@ -207,9 +204,7 @@ const SortableFieldItem: React.FC<SortableFieldItemProps> = ({
       </button>
 
       {/* Field Type Icon */}
-      <div className="p-2 rounded-md bg-(--color-surface-hover)">
-        {fieldTypeIcons[field.type]}
-      </div>
+      <div className="p-2 rounded-md bg-(--color-surface-hover)">{fieldTypeIcons[field.type]}</div>
 
       {/* Field Info */}
       <div className="flex-1 min-w-0">
@@ -217,9 +212,7 @@ const SortableFieldItem: React.FC<SortableFieldItemProps> = ({
           <span className="text-sm font-medium text-(--color-text-primary) truncate">
             {field.label}
           </span>
-          {field.required && (
-            <span className="text-xs text-red-500">*</span>
-          )}
+          {field.required && <span className="text-xs text-red-500">*</span>}
         </div>
         <span className="text-xs text-(--color-text-muted)">
           {fieldTypeLabels[field.type]} • {field.name}
@@ -244,41 +237,39 @@ const SortableFieldItem: React.FC<SortableFieldItemProps> = ({
         </button>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // ============================================================================
 // Field Editor Panel
 // ============================================================================
 
 interface FieldEditorProps {
-  field: FormFieldDefinition | null;
-  onSave: (field: FormFieldDefinition) => void;
-  onClose: () => void;
+  field: FormFieldDefinition | null
+  onSave: (field: FormFieldDefinition) => void
+  onClose: () => void
 }
 
 const FieldEditor: React.FC<FieldEditorProps> = ({ field, onSave, onClose }) => {
-  const [editedField, setEditedField] = useState<FormFieldDefinition | null>(field);
+  const [editedField, setEditedField] = useState<FormFieldDefinition | null>(field)
 
-  if (!editedField) return null;
+  if (!editedField) return null
 
   const handleChange = (key: keyof FormFieldDefinition, value: unknown) => {
-    setEditedField((prev) => prev ? { ...prev, [key]: value } : null);
-  };
+    setEditedField((prev) => (prev ? { ...prev, [key]: value } : null))
+  }
 
   const handleSave = () => {
     if (editedField) {
-      onSave(editedField);
-      onClose();
+      onSave(editedField)
+      onClose()
     }
-  };
+  }
 
   return (
     <div className="p-4 border-l border-(--color-border) bg-(--color-surface) w-80">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-(--color-text-primary)">
-          Edit Field
-        </h3>
+        <h3 className="text-sm font-semibold text-(--color-text-primary)">Edit Field</h3>
         <button
           onClick={onClose}
           className="text-(--color-text-muted) hover:text-(--color-text-primary)"
@@ -328,7 +319,9 @@ const FieldEditor: React.FC<FieldEditorProps> = ({ field, onSave, onClose }) => 
               bg-(--color-surface) focus:ring-2 focus:ring-(--color-primary)"
           >
             {Object.entries(fieldTypeLabels).map(([type, label]) => (
-              <option key={type} value={type}>{label}</option>
+              <option key={type} value={type}>
+                {label}
+              </option>
             ))}
           </select>
         </div>
@@ -369,61 +362,61 @@ const FieldEditor: React.FC<FieldEditorProps> = ({ field, onSave, onClose }) => 
         </button>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // ============================================================================
 // Form Preview (Runtime)
 // ============================================================================
 
 interface FormPreviewProps {
-  fields: FormFieldDefinition[];
-  onSubmit: (data: FieldValues) => void;
+  fields: FormFieldDefinition[]
+  onSubmit: (data: FieldValues) => void
 }
 
 const FormPreview: React.FC<FormPreviewProps> = ({ fields, onSubmit }) => {
   // Build Zod schema dynamically
   const schema = useMemo(() => {
-    const shape: Record<string, z.ZodTypeAny> = {};
+    const shape: Record<string, z.ZodTypeAny> = {}
 
     fields.forEach((field) => {
-      let fieldSchema: z.ZodTypeAny;
+      let fieldSchema: z.ZodTypeAny
 
       switch (field.type) {
         case 'email':
-          fieldSchema = z.string().email('Invalid email address');
-          break;
+          fieldSchema = z.string().email('Invalid email address')
+          break
         case 'number':
-          fieldSchema = z.coerce.number();
+          fieldSchema = z.coerce.number()
           if (field.validation?.min !== undefined) {
-            fieldSchema = (fieldSchema as z.ZodNumber).min(field.validation.min);
+            fieldSchema = (fieldSchema as z.ZodNumber).min(field.validation.min)
           }
           if (field.validation?.max !== undefined) {
-            fieldSchema = (fieldSchema as z.ZodNumber).max(field.validation.max);
+            fieldSchema = (fieldSchema as z.ZodNumber).max(field.validation.max)
           }
-          break;
+          break
         case 'checkbox':
-          fieldSchema = z.boolean();
-          break;
+          fieldSchema = z.boolean()
+          break
         default:
-          fieldSchema = z.string();
+          fieldSchema = z.string()
           if (field.validation?.minLength) {
-            fieldSchema = (fieldSchema as z.ZodString).min(field.validation.minLength);
+            fieldSchema = (fieldSchema as z.ZodString).min(field.validation.minLength)
           }
           if (field.validation?.maxLength) {
-            fieldSchema = (fieldSchema as z.ZodString).max(field.validation.maxLength);
+            fieldSchema = (fieldSchema as z.ZodString).max(field.validation.maxLength)
           }
       }
 
       if (!field.required && field.type !== 'checkbox') {
-        fieldSchema = fieldSchema.optional();
+        fieldSchema = fieldSchema.optional()
       }
 
-      shape[field.name] = fieldSchema;
-    });
+      shape[field.name] = fieldSchema
+    })
 
-    return z.object(shape);
-  }, [fields]);
+    return z.object(shape)
+  }, [fields])
 
   const {
     register,
@@ -432,22 +425,24 @@ const FormPreview: React.FC<FormPreviewProps> = ({ fields, onSubmit }) => {
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm({
     resolver: zodResolver(schema),
-  });
+  })
 
   const onFormSubmit: SubmitHandler<FieldValues> = (data) => {
-    onSubmit(data);
-  };
+    onSubmit(data)
+  }
 
   const renderField = (field: FormFieldDefinition) => {
-    const error = errors[field.name];
+    const error = errors[field.name]
     const baseInputClass = `
       w-full px-3 py-2.5 text-sm rounded-xs border
-      ${error
-        ? 'border-red-500 focus:ring-red-500'
-        : 'border-[var(--color-border)] focus:ring-[var(--color-primary)]'}
+      ${
+        error
+          ? 'border-red-500 focus:ring-red-500'
+          : 'border-[var(--color-border)] focus:ring-[var(--color-primary)]'
+      }
       bg-[var(--color-surface)] focus:ring-2 focus:border-transparent
       transition-colors
-    `;
+    `
 
     switch (field.type) {
       case 'textarea':
@@ -458,7 +453,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({ fields, onSubmit }) => {
             rows={4}
             className={baseInputClass}
           />
-        );
+        )
 
       case 'select':
         return (
@@ -470,7 +465,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({ fields, onSubmit }) => {
               </option>
             ))}
           </select>
-        );
+        )
 
       case 'checkbox':
         return (
@@ -491,7 +486,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({ fields, onSubmit }) => {
               </label>
             )}
           />
-        );
+        )
 
       case 'radio':
         return (
@@ -508,7 +503,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({ fields, onSubmit }) => {
               </label>
             ))}
           </div>
-        );
+        )
 
       default:
         return (
@@ -518,9 +513,9 @@ const FormPreview: React.FC<FormPreviewProps> = ({ fields, onSubmit }) => {
             placeholder={field.placeholder}
             className={baseInputClass}
           />
-        );
+        )
     }
-  };
+  }
 
   return (
     <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-5">
@@ -534,7 +529,7 @@ const FormPreview: React.FC<FormPreviewProps> = ({ fields, onSubmit }) => {
           {errors[field.name] && (
             <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
               <AlertCircle className="w-3 h-3" />
-              {errors[field.name]?.message as string || 'This field is invalid'}
+              {(errors[field.name]?.message as string) || 'This field is invalid'}
             </p>
           )}
         </div>
@@ -546,9 +541,11 @@ const FormPreview: React.FC<FormPreviewProps> = ({ fields, onSubmit }) => {
         className={`
           w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium
           rounded-xs transition-all
-          ${isSubmitSuccessful
-            ? 'bg-green-500 text-white'
-            : 'bg-(--color-primary) text-white hover:opacity-90'}
+          ${
+            isSubmitSuccessful
+              ? 'bg-green-500 text-white'
+              : 'bg-(--color-primary) text-white hover:opacity-90'
+          }
         `}
       >
         {isSubmitting ? (
@@ -566,8 +563,8 @@ const FormPreview: React.FC<FormPreviewProps> = ({ fields, onSubmit }) => {
         )}
       </button>
     </form>
-  );
-};
+  )
+}
 
 // ============================================================================
 // Form Builder Main Component
@@ -579,10 +576,10 @@ const FormBuilder: React.FC<FormBuilderProps> = ({
   onSubmit,
   previewMode = false,
 }) => {
-  const [fields, setFields] = useState<FormFieldDefinition[]>(initialFields);
-  const [editingField, setEditingField] = useState<FormFieldDefinition | null>(null);
-  const [isPreview, setIsPreview] = useState(previewMode);
-  const [lastSubmission, setLastSubmission] = useState<FieldValues | null>(null);
+  const [fields, setFields] = useState<FormFieldDefinition[]>(initialFields)
+  const [editingField, setEditingField] = useState<FormFieldDefinition | null>(null)
+  const [isPreview, setIsPreview] = useState(previewMode)
+  const [lastSubmission, setLastSubmission] = useState<FieldValues | null>(null)
 
   // DnD Sensors
   const sensors = useSensors(
@@ -590,77 +587,90 @@ const FormBuilder: React.FC<FormBuilderProps> = ({
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
-  );
+  )
 
   // Handle drag end
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event
 
-    if (over && active.id !== over.id) {
-      setFields((items) => {
-        const oldIndex = items.findIndex((i) => i.id === active.id);
-        const newIndex = items.findIndex((i) => i.id === over.id);
-        const newFields = arrayMove(items, oldIndex, newIndex);
-        onFieldsChange?.(newFields);
-        return newFields;
-      });
-    }
-  }, [onFieldsChange]);
+      if (over && active.id !== over.id) {
+        setFields((items) => {
+          const oldIndex = items.findIndex((i) => i.id === active.id)
+          const newIndex = items.findIndex((i) => i.id === over.id)
+          const newFields = arrayMove(items, oldIndex, newIndex)
+          onFieldsChange?.(newFields)
+          return newFields
+        })
+      }
+    },
+    [onFieldsChange]
+  )
 
   // Add new field
-  const addField = useCallback((type: FieldType) => {
-    const newField: FormFieldDefinition = {
-      id: `field-${Date.now()}`,
-      type,
-      name: `field_${Date.now()}`,
-      label: `New ${fieldTypeLabels[type]} Field`,
-      placeholder: '',
-      required: false,
-    };
+  const addField = useCallback(
+    (type: FieldType) => {
+      const newField: FormFieldDefinition = {
+        id: `field-${Date.now()}`,
+        type,
+        name: `field_${Date.now()}`,
+        label: `New ${fieldTypeLabels[type]} Field`,
+        placeholder: '',
+        required: false,
+      }
 
-    if (type === 'select' || type === 'radio') {
-      newField.options = [
-        { value: 'option1', label: 'Option 1' },
-        { value: 'option2', label: 'Option 2' },
-      ];
-    }
+      if (type === 'select' || type === 'radio') {
+        newField.options = [
+          { value: 'option1', label: 'Option 1' },
+          { value: 'option2', label: 'Option 2' },
+        ]
+      }
 
-    setFields((prev) => {
-      const newFields = [...prev, newField];
-      onFieldsChange?.(newFields);
-      return newFields;
-    });
-    setEditingField(newField);
-  }, [onFieldsChange]);
+      setFields((prev) => {
+        const newFields = [...prev, newField]
+        onFieldsChange?.(newFields)
+        return newFields
+      })
+      setEditingField(newField)
+    },
+    [onFieldsChange]
+  )
 
   // Update field
-  const updateField = useCallback((updatedField: FormFieldDefinition) => {
-    setFields((prev) => {
-      const newFields = prev.map((f) =>
-        f.id === updatedField.id ? updatedField : f
-      );
-      onFieldsChange?.(newFields);
-      return newFields;
-    });
-  }, [onFieldsChange]);
+  const updateField = useCallback(
+    (updatedField: FormFieldDefinition) => {
+      setFields((prev) => {
+        const newFields = prev.map((f) => (f.id === updatedField.id ? updatedField : f))
+        onFieldsChange?.(newFields)
+        return newFields
+      })
+    },
+    [onFieldsChange]
+  )
 
   // Delete field
-  const deleteField = useCallback((id: string) => {
-    setFields((prev) => {
-      const newFields = prev.filter((f) => f.id !== id);
-      onFieldsChange?.(newFields);
-      return newFields;
-    });
-    if (editingField?.id === id) {
-      setEditingField(null);
-    }
-  }, [editingField, onFieldsChange]);
+  const deleteField = useCallback(
+    (id: string) => {
+      setFields((prev) => {
+        const newFields = prev.filter((f) => f.id !== id)
+        onFieldsChange?.(newFields)
+        return newFields
+      })
+      if (editingField?.id === id) {
+        setEditingField(null)
+      }
+    },
+    [editingField, onFieldsChange]
+  )
 
   // Handle form submission
-  const handleFormSubmit = useCallback((data: FieldValues) => {
-    setLastSubmission(data);
-    onSubmit?.(data);
-  }, [onSubmit]);
+  const handleFormSubmit = useCallback(
+    (data: FieldValues) => {
+      setLastSubmission(data)
+      onSubmit?.(data)
+    },
+    [onSubmit]
+  )
 
   return (
     <div className="rounded-xl border border-(--color-border) bg-(--color-surface) overflow-hidden shadow-sm">
@@ -671,9 +681,7 @@ const FormBuilder: React.FC<FormBuilderProps> = ({
             <FileText className="w-5 h-5 text-(--color-secondary)" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-(--color-text-primary)">
-              Form Builder
-            </h3>
+            <h3 className="text-sm font-semibold text-(--color-text-primary)">Form Builder</h3>
             <p className="text-xs text-(--color-text-muted)">
               {fields.length} fields • Drag to reorder
             </p>
@@ -685,9 +693,11 @@ const FormBuilder: React.FC<FormBuilderProps> = ({
           onClick={() => setIsPreview(!isPreview)}
           className={`
             flex items-center gap-2 px-4 py-2 text-sm rounded-xs transition-colors
-            ${isPreview
-              ? 'bg-(--color-primary) text-white'
-              : 'bg-(--color-surface-hover) text-(--color-text-primary)'}
+            ${
+              isPreview
+                ? 'bg-(--color-primary) text-white'
+                : 'bg-(--color-surface-hover) text-(--color-text-primary)'
+            }
           `}
         >
           {isPreview ? (
@@ -719,9 +729,7 @@ const FormBuilder: React.FC<FormBuilderProps> = ({
 
               {lastSubmission && (
                 <div className="mt-6 p-4 rounded-xs bg-green-50 border border-green-200">
-                  <p className="text-sm font-medium text-green-700 mb-2">
-                    ✅ Form Data Submitted:
-                  </p>
+                  <p className="text-sm font-medium text-green-700 mb-2">✅ Form Data Submitted:</p>
                   <pre className="text-xs text-green-800 bg-green-100 p-2 rounded overflow-x-auto">
                     {JSON.stringify(lastSubmission, null, 2)}
                   </pre>
@@ -733,9 +741,7 @@ const FormBuilder: React.FC<FormBuilderProps> = ({
             <>
               {/* Add Field Buttons */}
               <div className="mb-4 p-3 rounded-xs bg-(--color-surface-hover)">
-                <p className="text-xs font-medium text-(--color-text-muted) mb-2">
-                  ADD FIELD
-                </p>
+                <p className="text-xs font-medium text-(--color-text-muted) mb-2">ADD FIELD</p>
                 <div className="flex flex-wrap gap-2">
                   {(Object.keys(fieldTypeLabels) as FieldType[]).map((type) => (
                     <button
@@ -811,7 +817,9 @@ const FormBuilder: React.FC<FormBuilderProps> = ({
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default FormBuilder;
+FormBuilder.displayName = 'FormBuilder'
+
+export default FormBuilder

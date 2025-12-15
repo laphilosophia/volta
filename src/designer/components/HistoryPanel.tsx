@@ -24,7 +24,7 @@ export const HistoryPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => 
     jump(index + 1)
   }
 
-  const currentAction = useDesignerStore(s => s.actionDescription)
+  const currentAction = useDesignerStore((s) => s.actionDescription)
 
   return (
     <div className="absolute top-14 right-4 z-50 w-80 bg-(--color-surface) border border-(--color-border) shadow-xl rounded-lg flex flex-col max-h-[calc(100vh-100px)]">
@@ -44,7 +44,6 @@ export const HistoryPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => 
 
       {/* List */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
-
         {/* Past States */}
         {pastStates.map((state, index) => (
           <button
@@ -72,15 +71,15 @@ export const HistoryPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => 
             className="w-full text-left px-3 py-2 rounded flex items-center gap-3 text-sm text-(--color-text-muted) hover:bg-(--color-surface-hover) opacity-60"
           >
             <div className="w-1.5 h-1.5 rounded-full border border-(--color-border)" />
-            <span className="flex-1 truncate line-through">{state.actionDescription || 'Unknown Action'}</span>
+            <span className="flex-1 truncate line-through">
+              {state.actionDescription || 'Unknown Action'}
+            </span>
             <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100" />
           </button>
         ))}
 
         {pastStates.length === 0 && futureStates.length === 0 && (
-          <div className="text-center py-8 text-(--color-text-muted) text-xs">
-            No history yet
-          </div>
+          <div className="text-center py-8 text-(--color-text-muted) text-xs">No history yet</div>
         )}
       </div>
     </div>

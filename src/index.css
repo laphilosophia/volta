@@ -7,10 +7,10 @@
 
 :root {
   /* Default theme colors */
-  --color-primary: #3B82F6;
-  --color-secondary: #8B5CF6;
-  --color-accent: #10B981;
-  --color-neutral: #6B7280;
+  --color-primary: #3b82f6;
+  --color-secondary: #8b5cf6;
+  --color-accent: #10b981;
+  --color-neutral: #6b7280;
 
   /* Derived colors with opacity */
   --color-primary-light: color-mix(in srgb, var(--color-primary) 20%, white);
@@ -131,9 +131,21 @@ body {
 
 .gradient-mesh {
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 20%, transparent) 0%, transparent 50%),
-    linear-gradient(225deg, color-mix(in srgb, var(--color-secondary) 20%, transparent) 0%, transparent 50%),
-    linear-gradient(315deg, color-mix(in srgb, var(--color-accent) 10%, transparent) 0%, transparent 50%);
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-primary) 20%, transparent) 0%,
+      transparent 50%
+    ),
+    linear-gradient(
+      225deg,
+      color-mix(in srgb, var(--color-secondary) 20%, transparent) 0%,
+      transparent 50%
+    ),
+    linear-gradient(
+      315deg,
+      color-mix(in srgb, var(--color-accent) 10%, transparent) 0%,
+      transparent 50%
+    );
 }
 
 /* Animation keyframes */
@@ -172,7 +184,6 @@ body {
 }
 
 @keyframes pulse {
-
   0%,
   100% {
     opacity: 1;
@@ -224,7 +235,12 @@ body {
 }
 
 .skeleton {
-  background: linear-gradient(90deg, var(--color-surface-hover) 25%, var(--color-surface) 50%, var(--color-surface-hover) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-hover) 25%,
+    var(--color-surface) 50%,
+    var(--color-surface-hover) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }

@@ -14,7 +14,7 @@ import {
   Save,
   Undo2,
   ZoomIn,
-  ZoomOut
+  ZoomOut,
 } from 'lucide-react'
 import React from 'react'
 import type { LayoutTemplate } from '../../core'
@@ -76,9 +76,10 @@ export const ToolbarV2: React.FC<ToolbarV2Props> = ({
           <button
             onClick={() => onModeChange('edit')}
             className={`px-3 py-1.5 text-sm flex items-center gap-1 transition-colors
-              ${mode === 'edit'
-                ? 'bg-(--color-primary) text-white'
-                : 'text-(--color-text-primary) hover:bg-(--color-surface-hover)'
+              ${
+                mode === 'edit'
+                  ? 'bg-(--color-primary) text-white'
+                  : 'text-(--color-text-primary) hover:bg-(--color-surface-hover)'
               }`}
           >
             <Edit3 className="w-4 h-4" />
@@ -87,9 +88,10 @@ export const ToolbarV2: React.FC<ToolbarV2Props> = ({
           <button
             onClick={() => onModeChange('preview')}
             className={`px-3 py-1.5 text-sm flex items-center gap-1 transition-colors
-              ${mode === 'preview'
-                ? 'bg-(--color-primary) text-white'
-                : 'text-(--color-text-primary) hover:bg-(--color-surface-hover)'
+              ${
+                mode === 'preview'
+                  ? 'bg-(--color-primary) text-white'
+                  : 'text-(--color-text-primary) hover:bg-(--color-surface-hover)'
               }`}
           >
             <Eye className="w-4 h-4" />
@@ -118,12 +120,14 @@ export const ToolbarV2: React.FC<ToolbarV2Props> = ({
           disabled={!canUndo}
           icon={<Undo2 className="w-4 h-4" />}
           title="Undo"
+          testId="toolbar-undo"
         />
         <ToolbarButton
           onClick={onRedo}
           disabled={!canRedo}
           icon={<Redo className="w-4 h-4" />}
           title="Redo"
+          testId="toolbar-redo"
         />
 
         <Divider />
@@ -174,10 +178,12 @@ export const ToolbarV2: React.FC<ToolbarV2Props> = ({
       <div className="flex items-center gap-2">
         <button
           onClick={onSave}
+          data-testid="toolbar-save"
           className={`px-4 py-1.5 text-sm rounded-lg flex items-center gap-2 transition-colors
-            ${isDirty
-              ? 'bg-(--color-primary) text-white hover:opacity-90'
-              : 'bg-(--color-surface-hover) text-(--color-text-muted)'
+            ${
+              isDirty
+                ? 'bg-(--color-primary) text-white hover:opacity-90'
+                : 'bg-(--color-surface-hover) text-(--color-text-muted)'
             }`}
         >
           <Save className="w-4 h-4" />
@@ -198,6 +204,7 @@ interface ToolbarButtonProps {
   icon: React.ReactNode
   title: string
   isActive?: boolean
+  testId?: string
 }
 
 const ToolbarButton: React.FC<ToolbarButtonProps> = ({
@@ -206,10 +213,12 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
   icon,
   title,
   isActive,
+  testId,
 }) => (
   <button
     onClick={onClick}
     disabled={disabled}
+    data-testid={testId}
     className={`p-2 rounded-lg transition-colors
       ${isActive ? 'bg-(--color-primary-light) text-(--color-primary)' : 'hover:bg-(--color-surface-hover)'}
       ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -219,6 +228,4 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
   </button>
 )
 
-const Divider: React.FC = () => (
-  <div className="w-px h-6 bg-(--color-border) mx-2" />
-)
+const Divider: React.FC = () => <div className="w-px h-6 bg-(--color-border) mx-2" />

@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { TestCard } from './TestCard';
+import type { Meta, StoryObj } from '@storybook/react'
+import { TestCard } from './TestCard'
 
 const meta = {
   title: 'Predefined/TestCard',
@@ -8,9 +8,9 @@ const meta = {
     layout: 'centered',
   },
   tags: ['autodocs'],
-} satisfies Meta<typeof TestCard>;
+} satisfies Meta<typeof TestCard>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
-export const Default: Story = {};
+export const Default: Story = {}

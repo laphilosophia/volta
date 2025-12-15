@@ -13,56 +13,56 @@ import {
   RefreshCw,
   Table,
   Trash2,
-} from 'lucide-react';
-import React, { useCallback, useMemo, useState } from 'react';
+} from 'lucide-react'
+import React, { useCallback, useMemo, useState } from 'react'
 import {
   type Field,
   QueryBuilder as RQB,
   type RuleGroupType,
   defaultOperators,
-  formatQuery
-} from 'react-querybuilder';
-import 'react-querybuilder/dist/query-builder.css';
+  formatQuery,
+} from 'react-querybuilder'
+import 'react-querybuilder/dist/query-builder.css'
 
 // ============================================================================
 // Types
 // ============================================================================
 
 export interface QueryField extends Field {
-  dataType?: 'string' | 'number' | 'date' | 'boolean' | 'array';
-  tableName?: string;
+  dataType?: 'string' | 'number' | 'date' | 'boolean' | 'array'
+  tableName?: string
 }
 
 export interface QueryBuilderProps {
   /** Available fields for querying */
-  fields?: QueryField[];
+  fields?: QueryField[]
   /** Initial query state */
-  initialQuery?: RuleGroupType;
+  initialQuery?: RuleGroupType
   /** Callback when query changes */
-  onQueryChange?: (query: RuleGroupType) => void;
+  onQueryChange?: (query: RuleGroupType) => void
   /** Callback when query is executed */
-  onExecute?: (query: RuleGroupType, formatted: QueryFormats) => void;
+  onExecute?: (query: RuleGroupType, formatted: QueryFormats) => void
   /** Available tables/entities */
-  tables?: TableDefinition[];
+  tables?: TableDefinition[]
   /** Component ID for metadata */
-  componentId?: string;
+  componentId?: string
   /** Show query preview */
-  showPreview?: boolean;
+  showPreview?: boolean
   /** Allow multiple tables */
-  multiTable?: boolean;
+  multiTable?: boolean
 }
 
 export interface TableDefinition {
-  name: string;
-  label: string;
-  fields: QueryField[];
+  name: string
+  label: string
+  fields: QueryField[]
 }
 
 export interface QueryFormats {
-  sql: string;
-  json: string;
-  mongodb: string;
-  parameterized: { sql: string; params: unknown[] };
+  sql: string
+  json: string
+  mongodb: string
+  parameterized: { sql: string; params: unknown[] }
 }
 
 // ============================================================================
@@ -77,7 +77,7 @@ const customOperators = [
   { name: 'endsWith', label: 'ends with' },
   { name: 'between', label: 'between' },
   { name: 'notBetween', label: 'not between' },
-];
+]
 
 // ============================================================================
 // Default Fields (Demo)
@@ -92,23 +92,31 @@ const defaultFields: QueryField[] = [
   { name: 'createdAt', label: 'Created At', dataType: 'date', inputType: 'date' },
   { name: 'isActive', label: 'Is Active', dataType: 'boolean', valueEditorType: 'checkbox' },
   {
-    name: 'department', label: 'Department', dataType: 'string', valueEditorType: 'select', values: [
+    name: 'department',
+    label: 'Department',
+    dataType: 'string',
+    valueEditorType: 'select',
+    values: [
       { name: 'sales', label: 'Sales' },
       { name: 'engineering', label: 'Engineering' },
       { name: 'marketing', label: 'Marketing' },
       { name: 'hr', label: 'Human Resources' },
-    ]
+    ],
   },
   { name: 'salary', label: 'Salary', dataType: 'number' },
   {
-    name: 'country', label: 'Country', dataType: 'string', valueEditorType: 'select', values: [
+    name: 'country',
+    label: 'Country',
+    dataType: 'string',
+    valueEditorType: 'select',
+    values: [
       { name: 'us', label: 'United States' },
       { name: 'uk', label: 'United Kingdom' },
       { name: 'tr', label: 'Turkey' },
       { name: 'de', label: 'Germany' },
-    ]
+    ],
   },
-];
+]
 
 // ============================================================================
 // Default Query
@@ -117,7 +125,7 @@ const defaultFields: QueryField[] = [
 const defaultQuery: RuleGroupType = {
   combinator: 'and',
   rules: [],
-};
+}
 
 // ============================================================================
 // Query Builder Component
@@ -131,19 +139,19 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({
   tables = [],
   showPreview = true,
 }) => {
-  const [query, setQuery] = useState<RuleGroupType>(initialQuery);
-  const [activeFormat, setActiveFormat] = useState<'sql' | 'json' | 'mongodb'>('sql');
-  const [selectedTable, setSelectedTable] = useState<string>(tables[0]?.name || '');
-  const [copied, setCopied] = useState(false);
+  const [query, setQuery] = useState<RuleGroupType>(initialQuery)
+  const [activeFormat, setActiveFormat] = useState<'sql' | 'json' | 'mongodb'>('sql')
+  const [selectedTable, setSelectedTable] = useState<string>(tables[0]?.name || '')
+  const [copied, setCopied] = useState(false)
 
   // Get fields based on selected table
   const activeFields = useMemo(() => {
     if (tables.length > 0 && selectedTable) {
-      const table = tables.find(t => t.name === selectedTable);
-      return table?.fields || [];
+      const table = tables.find((t) => t.name === selectedTable)
+      return table?.fields || []
     }
-    return fields;
-  }, [tables, selectedTable, fields]);
+    return fields
+  }, [tables, selectedTable, fields])
 
   // Format query to different outputs
   const formattedQuery = useMemo((): QueryFormats => {
@@ -153,46 +161,50 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({
         json: formatQuery(query, 'json'),
         mongodb: formatQuery(query, 'mongodb'),
         parameterized: formatQuery(query, 'parameterized') as { sql: string; params: unknown[] },
-      };
+      }
     } catch {
       return {
         sql: '-- Invalid query',
         json: '{}',
         mongodb: '{}',
         parameterized: { sql: '', params: [] },
-      };
+      }
     }
-  }, [query]);
+  }, [query])
 
   // Handle query change
-  const handleQueryChange = useCallback((newQuery: RuleGroupType) => {
-    setQuery(newQuery);
-    onQueryChange?.(newQuery);
-  }, [onQueryChange]);
+  const handleQueryChange = useCallback(
+    (newQuery: RuleGroupType) => {
+      setQuery(newQuery)
+      onQueryChange?.(newQuery)
+    },
+    [onQueryChange]
+  )
 
   // Handle execute
   const handleExecute = useCallback(() => {
-    onExecute?.(query, formattedQuery);
-  }, [query, formattedQuery, onExecute]);
+    onExecute?.(query, formattedQuery)
+  }, [query, formattedQuery, onExecute])
 
   // Handle reset
   const handleReset = useCallback(() => {
-    setQuery(defaultQuery);
-    onQueryChange?.(defaultQuery);
-  }, [onQueryChange]);
+    setQuery(defaultQuery)
+    onQueryChange?.(defaultQuery)
+  }, [onQueryChange])
 
   // Handle copy
   const handleCopy = useCallback(async () => {
-    const textToCopy = activeFormat === 'sql'
-      ? formattedQuery.sql
-      : activeFormat === 'json'
-        ? formattedQuery.json
-        : formattedQuery.mongodb;
+    const textToCopy =
+      activeFormat === 'sql'
+        ? formattedQuery.sql
+        : activeFormat === 'json'
+          ? formattedQuery.json
+          : formattedQuery.mongodb
 
-    await navigator.clipboard.writeText(textToCopy);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, [activeFormat, formattedQuery]);
+    await navigator.clipboard.writeText(textToCopy)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }, [activeFormat, formattedQuery])
 
   return (
     <div className="rounded-xl border border-(--color-border) bg-(--color-surface) overflow-hidden shadow-sm">
@@ -203,12 +215,8 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({
             <Filter className="w-5 h-5 text-(--color-primary)" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-(--color-text-primary)">
-              Query Builder
-            </h3>
-            <p className="text-xs text-(--color-text-muted)">
-              Build database queries visually
-            </p>
+            <h3 className="text-sm font-semibold text-(--color-text-primary)">Query Builder</h3>
+            <p className="text-xs text-(--color-text-muted)">Build database queries visually</p>
           </div>
         </div>
 
@@ -351,9 +359,11 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({
               <button
                 onClick={() => setActiveFormat('sql')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-xs transition-colors
-                  ${activeFormat === 'sql'
-                    ? 'bg-(--color-primary) text-white'
-                    : 'text-(--color-text-secondary) hover:bg-(--color-surface)'}`}
+                  ${
+                    activeFormat === 'sql'
+                      ? 'bg-(--color-primary) text-white'
+                      : 'text-(--color-text-secondary) hover:bg-(--color-surface)'
+                  }`}
               >
                 <Database className="w-3.5 h-3.5" />
                 SQL
@@ -361,9 +371,11 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({
               <button
                 onClick={() => setActiveFormat('json')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-xs transition-colors
-                  ${activeFormat === 'json'
-                    ? 'bg-(--color-primary) text-white'
-                    : 'text-(--color-text-secondary) hover:bg-(--color-surface)'}`}
+                  ${
+                    activeFormat === 'json'
+                      ? 'bg-(--color-primary) text-white'
+                      : 'text-(--color-text-secondary) hover:bg-(--color-surface)'
+                  }`}
               >
                 <FileJson className="w-3.5 h-3.5" />
                 JSON
@@ -371,9 +383,11 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({
               <button
                 onClick={() => setActiveFormat('mongodb')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-xs transition-colors
-                  ${activeFormat === 'mongodb'
-                    ? 'bg-(--color-primary) text-white'
-                    : 'text-(--color-text-secondary) hover:bg-(--color-surface)'}`}
+                  ${
+                    activeFormat === 'mongodb'
+                      ? 'bg-(--color-primary) text-white'
+                      : 'text-(--color-text-secondary) hover:bg-(--color-surface)'
+                  }`}
               >
                 <Code className="w-3.5 h-3.5" />
                 MongoDB
@@ -396,7 +410,8 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({
             <pre className="p-4 rounded-xs bg-[#1e1e1e] text-[#d4d4d4] text-sm font-mono overflow-x-auto">
               <code>
                 {activeFormat === 'sql' && formattedQuery.sql}
-                {activeFormat === 'json' && JSON.stringify(JSON.parse(formattedQuery.json), null, 2)}
+                {activeFormat === 'json' &&
+                  JSON.stringify(JSON.parse(formattedQuery.json), null, 2)}
                 {activeFormat === 'mongodb' && formattedQuery.mongodb}
               </code>
             </pre>
@@ -484,7 +499,9 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({
         }
       `}</style>
     </div>
-  );
-};
+  )
+}
 
-export default QueryBuilder;
+QueryBuilder.displayName = 'QueryBuilder'
+
+export default QueryBuilder

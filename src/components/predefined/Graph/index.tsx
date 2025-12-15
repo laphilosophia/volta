@@ -2,32 +2,32 @@
 // Graph Component (Using Apache ECharts)
 // ============================================================================
 
-import React, { useEffect, useMemo, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useEffect, useMemo, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 
-type ChartType = 'line' | 'bar' | 'pie' | 'area';
+type ChartType = 'line' | 'bar' | 'pie' | 'area'
 
 interface DataPoint {
-  name: string;
-  value: number;
-  color?: string;
+  name: string
+  value: number
+  color?: string
 }
 
 interface GraphProps {
-  chartType?: ChartType;
-  data?: DataPoint[];
-  title?: string;
-  xAxisLabel?: string;
-  yAxisLabel?: string;
-  showLegend?: boolean;
-  animated?: boolean;
-  theme?: 'light' | 'dark';
-  height?: number;
+  chartType?: ChartType
+  data?: DataPoint[]
+  title?: string
+  xAxisLabel?: string
+  yAxisLabel?: string
+  showLegend?: boolean
+  animated?: boolean
+  theme?: 'light' | 'dark'
+  height?: number
   dataSource?: {
-    query: Record<string, unknown>;
-    schema: Record<string, unknown>;
-  };
-  componentId?: string;
+    query: Record<string, unknown>
+    schema: Record<string, unknown>
+  }
+  componentId?: string
 }
 
 const Graph: React.FC<GraphProps> = ({
@@ -41,10 +41,10 @@ const Graph: React.FC<GraphProps> = ({
   theme = 'light',
   height = 300,
 }) => {
-  const { t } = useTranslation('components');
-  const chartRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation('components')
+  const chartRef = useRef<HTMLDivElement>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const chartInstance = useRef<any>(null);
+  const chartInstance = useRef<any>(null)
   const options = useMemo(() => {
     const colors = [
       'var(--color-primary)',
@@ -53,7 +53,7 @@ const Graph: React.FC<GraphProps> = ({
       '#F59E0B',
       '#EF4444',
       '#EC4899',
-    ];
+    ]
 
     const baseOptions = {
       animation: animated,
@@ -68,24 +68,24 @@ const Graph: React.FC<GraphProps> = ({
       },
       legend: showLegend
         ? {
-          bottom: 0,
-          textStyle: {
-            color: theme === 'dark' ? '#e2e8f0' : '#475569',
-          },
-        }
+            bottom: 0,
+            textStyle: {
+              color: theme === 'dark' ? '#e2e8f0' : '#475569',
+            },
+          }
         : undefined,
       title: title
         ? {
-          text: title,
-          left: 'center',
-          textStyle: {
-            color: theme === 'dark' ? '#f1f5f9' : '#0f172a',
-            fontSize: 16,
-            fontWeight: 600,
-          },
-        }
+            text: title,
+            left: 'center',
+            textStyle: {
+              color: theme === 'dark' ? '#f1f5f9' : '#0f172a',
+              fontSize: 16,
+              fontWeight: 600,
+            },
+          }
         : undefined,
-    };
+    }
 
     if (chartType === 'pie') {
       return {
@@ -119,7 +119,7 @@ const Graph: React.FC<GraphProps> = ({
             },
           },
         ],
-      };
+      }
     }
 
     return {
@@ -178,50 +178,49 @@ const Graph: React.FC<GraphProps> = ({
           },
         },
       ],
-    };
-  }, [chartType, data, title, xAxisLabel, yAxisLabel, showLegend, animated, theme]);
+    }
+  }, [chartType, data, title, xAxisLabel, yAxisLabel, showLegend, animated, theme])
 
   useEffect(() => {
-    if (!chartRef.current) return;
+    if (!chartRef.current) return
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let echartsLib: any;
+    let echartsLib: any
 
     const initChart = async () => {
       // Dynamic import
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      echartsLib = await import('echarts');
 
-      if (!chartRef.current) return;
+      echartsLib = await import('echarts')
+
+      if (!chartRef.current) return
 
       if (!chartInstance.current) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        chartInstance.current = echartsLib.init(chartRef.current);
+        chartInstance.current = echartsLib.init(chartRef.current)
       }
 
       if (!chartInstance.current.isDisposed()) {
-        chartInstance.current.setOption(options);
+        chartInstance.current.setOption(options)
       }
-    };
+    }
 
-    initChart();
+    initChart()
 
     const handleResize = () => {
       if (chartInstance.current && !chartInstance.current.isDisposed()) {
-        chartInstance.current.resize();
+        chartInstance.current.resize()
       }
-    };
+    }
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', handleResize)
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('resize', handleResize)
       if (chartInstance.current && !chartInstance.current.isDisposed()) {
-        chartInstance.current.dispose();
-        chartInstance.current = null;
+        chartInstance.current.dispose()
+        chartInstance.current = null
       }
-    };
-  }, [options]);
+    }
+  }, [options])
 
   if (data.length === 0) {
     return (
@@ -229,18 +228,18 @@ const Graph: React.FC<GraphProps> = ({
         className="flex items-center justify-center rounded-xs border border-(--color-border) bg-(--color-surface)"
         style={{ height }}
       >
-        <p className="text-sm text-(--color-text-muted)">
-          {t('graph.noData')}
-        </p>
+        <p className="text-sm text-(--color-text-muted)">{t('graph.noData')}</p>
       </div>
-    );
+    )
   }
 
   return (
     <div className="rounded-xs border border-(--color-border) bg-(--color-surface) p-4">
       <div ref={chartRef} style={{ width: '100%', height }} />
     </div>
-  );
-};
+  )
+}
 
-export default Graph;
+Graph.displayName = 'Graph'
+
+export default Graph

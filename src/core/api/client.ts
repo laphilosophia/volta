@@ -1,3 +1,4 @@
+import { ApiError, ConfigurationError, NetworkError } from './errors'
 import type { VoltaConfig } from './types'
 
 export class ApiClient {
@@ -13,12 +14,18 @@ export class ApiClient {
   private resolveUrl(endpointKey: string, params?: Record<string, unknown>): string {
     const endpoint = this.config.endpoints[endpointKey]
     if (!endpoint) {
-      throw new Error(`Endpoint "${endpointKey}" not found in configuration.`)
+      throw new ConfigurationError(
+        `Endpoint "${endpointKey}" not found in configuration.`,
+        `endpoints.${endpointKey}`
+      )
     }
 
     const service = this.config.services[endpoint.service]
     if (!service) {
-      throw new Error(`Service "${endpoint.service}" not found in configuration.`)
+      throw new ConfigurationError(
+        `Service "${endpoint.service}" not found in configuration.`,
+        `services.${endpoint.service}`
+      )
     }
 
     // Join base URL and path, ensuring no double slashes
@@ -42,6 +49,9 @@ export class ApiClient {
 
   /**
    * Executes an API request for the given endpoint.
+   * @throws {ApiError} When the API returns a non-OK response
+   * @throws {NetworkError} When a network failure occurs
+   * @throws {ConfigurationError} When the endpoint or service is not configured
    */
   async request<T>(
     endpointKey: string,
@@ -50,7 +60,10 @@ export class ApiClient {
   ): Promise<T> {
     const endpoint = this.config.endpoints[endpointKey]
     if (!endpoint) {
-      throw new Error(`Endpoint "${endpointKey}" not found.`)
+      throw new ConfigurationError(
+        `Endpoint "${endpointKey}" not found.`,
+        `endpoints.${endpointKey}`
+      )
     }
 
     const service = this.config.services[endpoint.service]
@@ -101,13 +114,27 @@ export class ApiClient {
       })
 
       if (!response.ok) {
-        throw new Error(`API Request Failed: ${response.status} ${response.statusText}`)
+        // Try to parse error response body
+        let responseBody: unknown
+        try {
+          responseBody = await response.json()
+        } catch {
+          // Response body is not JSON
+          responseBody = await response.text()
+        }
+
+        throw new ApiError(response.status, response.statusText, endpointKey, responseBody)
       }
 
       return await response.json()
     } catch (error) {
-      console.error(`[Volta API] Error fetching ${endpointKey}:`, error)
-      throw error
+      // Re-throw our custom errors
+      if (error instanceof ApiError || error instanceof ConfigurationError) {
+        throw error
+      }
+
+      // Wrap other errors as NetworkError
+      throw new NetworkError(endpointKey, error as Error)
     }
   }
 }

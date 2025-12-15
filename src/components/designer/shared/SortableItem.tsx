@@ -41,14 +41,7 @@ export const SortableItem: React.FC<SortableItemProps> = ({
   onHover,
   dragHandlePosition = 'inline',
 }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: component.id,
     // Disable scale transform to fix position offset
     transition: {
