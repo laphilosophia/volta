@@ -1,4 +1,6 @@
-# Modern CRM Platform PoC (Starter Kit)
+![CRM Starter Kit Banner](docs/assets/banner.png)
+
+# Volta: Modern CRM Platform PoC
 
 A powerful, open-source Proof of Concept (PoC) and starter kit for building metadata-driven, white-label CRM platforms.
 
