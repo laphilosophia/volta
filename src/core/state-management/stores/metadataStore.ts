@@ -77,8 +77,9 @@ export const useMetadataStore = create<MetadataStore>()(
       removePage: (pageId) =>
         set(
           (state) => {
-            const { [pageId]: _, ...remainingPages } = state.pages
-            return { pages: remainingPages }
+            const newPages = { ...state.pages }
+            delete newPages[pageId]
+            return { pages: newPages }
           },
           false,
           'removePage'
@@ -87,8 +88,9 @@ export const useMetadataStore = create<MetadataStore>()(
       removeComponent: (componentId) =>
         set(
           (state) => {
-            const { [componentId]: _, ...remainingComponents } = state.components
-            return { components: remainingComponents }
+            const newComponents = { ...state.components }
+            delete newComponents[componentId]
+            return { components: newComponents }
           },
           false,
           'removeComponent'

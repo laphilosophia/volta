@@ -87,31 +87,26 @@ export const DynamicRenderer: React.FC<DynamicRendererProps> = memo(({ metadata,
     );
   }
 
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Component = componentRegistry.getLoader(metadata.type) as React.ComponentType<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const Component = componentRegistry.getLoader(metadata.type) as React.ComponentType<any>;
 
-    return (
-      <Suspense fallback={<ComponentSkeleton />}>
-        <ComponentErrorBoundary
+  return (
+    <Suspense fallback={<ComponentSkeleton />}>
+      <ComponentErrorBoundary
+        componentId={metadata.id}
+        onError={(err) => {
+          setError(err);
+          onError?.(metadata.id, err);
+        }}
+      >
+        <Component
+          {...metadata.props}
+          dataSource={metadata.dataSource}
           componentId={metadata.id}
-          onError={(err) => {
-            setError(err);
-            onError?.(metadata.id, err);
-          }}
-        >
-          <Component
-            {...metadata.props}
-            dataSource={metadata.dataSource}
-            componentId={metadata.id}
-          />
-        </ComponentErrorBoundary>
-      </Suspense>
-    );
-  } catch (err) {
-    const loadError = err instanceof Error ? err : new Error(String(err));
-    return <ErrorFallback componentId={metadata.id} error={loadError} />;
-  }
+        />
+      </ComponentErrorBoundary>
+    </Suspense>
+  );
 });
 
 DynamicRenderer.displayName = 'DynamicRenderer';
