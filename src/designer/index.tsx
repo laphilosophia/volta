@@ -131,21 +131,23 @@ const Designer: React.FC = () => {
   })
 
   // Get current page or create default
-  const storedPage = pages[currentPageId]
-  const currentPage: DesignerPageWithLayout = storedPage
-    ? {
-      pageId: storedPage.pageId,
-      title: storedPage.title,
-      description: storedPage.description,
-      components: storedPage.components,
-      layout: currentLayout,
-    }
-    : {
-      pageId: currentPageId,
-      title: { en: 'Designer Demo' },
-      components: [],
-      layout: currentLayout,
-    }
+  const currentPage = React.useMemo<DesignerPageWithLayout>(() => {
+    const storedPage = pages[currentPageId]
+    return storedPage
+      ? {
+        pageId: storedPage.pageId,
+        title: storedPage.title,
+        description: storedPage.description,
+        components: storedPage.components,
+        layout: currentLayout,
+      }
+      : {
+        pageId: currentPageId,
+        title: { en: 'Designer Demo' },
+        components: [],
+        layout: currentLayout,
+      }
+  }, [pages, currentPageId, currentLayout])
 
   // Helper to find component by ID across all zones
   const findComponentById = useCallback((componentId: string): ComponentMetadata | null => {
@@ -165,6 +167,38 @@ const Designer: React.FC = () => {
     }
     return null
   }, [currentLayout])
+
+  // ============================================================================
+  // Component Handlers (Hoisted for DnD access)
+  // ============================================================================
+
+  // Handle add component to zone
+  const handleAddComponent = useCallback(
+    (type: string, zoneId?: string) => {
+      const definition = componentRegistry.get(type)
+      if (!definition) return
+
+      const newComponent: ComponentMetadata = {
+        id: crypto.randomUUID(),
+        type,
+        props: { ...definition.defaultProps },
+        dataSource: { type: 'static' },
+      }
+
+      const targetZoneId = zoneId || currentLayout.zones[0]?.id || 'main'
+      const updatedZones = currentLayout.zones.map((zone) =>
+        zone.id === targetZoneId
+          ? { ...zone, components: [...zone.components, newComponent] }
+          : zone
+      )
+
+      setCurrentLayout({ ...currentLayout, zones: updatedZones })
+      addToHistory('addComponent', newComponent)
+      selectComponent(newComponent.id)
+      setDirty(true)
+    },
+    [currentLayout, addToHistory, selectComponent, setDirty]
+  )
 
   // ============================================================================
   // Global Drag Handlers - Handles BOTH palette drops AND zone reordering
@@ -257,7 +291,7 @@ const Designer: React.FC = () => {
         setDirty(true)
       }
     }
-  }, [dragState, currentLayout, findZoneContainingComponent, addToHistory, setDirty])
+  }, [dragState, currentLayout, findZoneContainingComponent, addToHistory, setDirty, handleAddComponent])
 
   // ============================================================================
   // Component Handlers
@@ -283,33 +317,7 @@ const Designer: React.FC = () => {
     [currentLayout, addToHistory, setDirty]
   )
 
-  // Handle add component to zone
-  const handleAddComponent = useCallback(
-    (type: string, zoneId?: string) => {
-      const definition = componentRegistry.get(type)
-      if (!definition) return
 
-      const newComponent: ComponentMetadata = {
-        id: crypto.randomUUID(),
-        type,
-        props: { ...definition.defaultProps },
-        dataSource: { type: 'static' },
-      }
-
-      const targetZoneId = zoneId || currentLayout.zones[0]?.id || 'main'
-      const updatedZones = currentLayout.zones.map((zone) =>
-        zone.id === targetZoneId
-          ? { ...zone, components: [...zone.components, newComponent] }
-          : zone
-      )
-
-      setCurrentLayout({ ...currentLayout, zones: updatedZones })
-      addToHistory('addComponent', newComponent)
-      selectComponent(newComponent.id)
-      setDirty(true)
-    },
-    [currentLayout, addToHistory, selectComponent, setDirty]
-  )
 
   // Handle component reorder in zone (called from LayoutCanvas if needed)
   const handleComponentReorder = useCallback(

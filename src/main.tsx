@@ -42,7 +42,7 @@ async function bootstrap() {
     const theme = await themeManager.loadTheme(tenantId);
     useTenantStore.getState().setTenant(tenantId, theme);
     console.log('🎨 Theme loaded successfully');
-  } catch (error) {
+  } catch {
     console.warn('⚠️ Failed to load theme, using defaults');
     const defaultTheme = themeManager.getDefaultTheme();
     useTenantStore.getState().setTenant(tenantId, defaultTheme);

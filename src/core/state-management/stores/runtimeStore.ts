@@ -65,8 +65,9 @@ export const useRuntimeStore = create<RuntimeStore>()(
         set(
           (state) => {
             if (key) {
-              const { [key]: _, ...rest } = state.queryCache
-              return { queryCache: rest }
+              const newCache = { ...state.queryCache }
+              delete newCache[key]
+              return { queryCache: newCache }
             }
             return { queryCache: {} }
           },
