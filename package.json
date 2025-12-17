@@ -2,17 +2,18 @@
   "name": "volta",
   "private": false,
   "version": "0.2.0-alpha.1",
-  "description": "Volta is a toolkit for building low-code/no-code platforms. Provides state management, data layers, component registry, and React adapters for LC/NC builder development.",
+  "description": "Toolkit for building low-code/no-code platforms. Provides state management, data layers, component registry, and React adapters.",
   "keywords": [
     "low-code",
     "no-code",
     "toolkit",
-    "state-management",
-    "data-layer",
+    "builder",
     "component-registry",
     "headless",
-    "builder",
-    "react"
+    "react",
+    "typescript",
+    "theming",
+    "metadata-driven"
   ],
   "author": "Erdem Arslan <erdemarslan@ymail.com>",
   "license": "MIT",

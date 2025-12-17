@@ -6,6 +6,10 @@ Volta is a **toolkit for developers who want to build low-code/no-code platforms
 
 > **Note**: Volta is not a visual builder itself—it's the foundation that powers them.
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
+[![Part of Sthira](https://img.shields.io/badge/Part%20of-Sthira%20Ecosystem-purple.svg)](https://github.com/laphilosophia)
+
 ## 🎯 What Volta Provides
 
 ### For Developers Building LC/NC Platforms
