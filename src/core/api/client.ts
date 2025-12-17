@@ -2,6 +2,20 @@ import { COOKIE_NAMES } from '../constants'
 import { ApiError, ConfigurationError, NetworkError } from './errors'
 import type { VoltaConfig } from './types'
 
+/**
+ * @deprecated Use `DataLayer` from `@voltakit/volta/data` instead.
+ * This class will be removed in v1.0.0.
+ *
+ * Migration example:
+ * ```typescript
+ * // Before
+ * import { apiClient } from '@voltakit/volta'
+ *
+ * // After
+ * import { DataLayer } from '@voltakit/volta/data'
+ * const dataLayer = new DataLayer({ baseUrl: '...' })
+ * ```
+ */
 export class ApiClient {
   private config: VoltaConfig
 

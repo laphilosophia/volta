@@ -5,6 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-12-17
+
+### 🎯 Data Layer Milestone
+
+This release introduces the Data Layer, State Layer, and React hooks for data fetching and state management.
+
+### Added
+
+#### Data Layer
+
+- **DataLayer** class - High-level API for data fetching with `@sthirajs/fetch` integration
+- Automatic caching with configurable stale/cache times
+- Request interceptors (onRequest, onResponse, onError)
+- Path parameter resolution (e.g., `/users/:id`)
+
+#### State Layer
+
+- **StateLayer** class - Centralized store registry with namespace isolation
+- Redux DevTools integration via `@sthirajs/devtools`
+- Cross-tab synchronization via `@sthirajs/cross-tab`
+- Store lifecycle management (create, get, destroy)
+
+#### React Hooks
+
+- `useVoltaQuery` - Data fetching with caching, refetch on focus/reconnect
+- `useVoltaMutation` - Mutations with optimistic updates and cache invalidation
+- `useVoltaStore` - Sthira store consumption with selector support
+
+### Changed
+
+- **Folder Structure** - All layers now use consistent subfolder structure:
+  - `src/layers/ThemeManager/`
+  - `src/layers/DataLayer/`
+  - `src/layers/StateLayer/`
+- **Dependencies** - All `@sthirajs/*` packages are now regular dependencies (not peer)
+- **ApiClient** - Marked as `@deprecated`, use DataLayer instead
+
+### Tests
+
+- Added 27 new tests (DataLayer: 10, StateLayer: 17)
+- Total test count: 68
+
+---
+
 ## [0.1.0-alpha.1] - 2025-12-16
 
 ### 🎉 Initial Alpha Release

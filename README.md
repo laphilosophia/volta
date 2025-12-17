@@ -13,84 +13,95 @@ Volta is a **toolkit for developers who want to build low-code/no-code platforms
 
 ## 🎯 What Volta Provides
 
-### For Developers Building LC/NC Platforms
-
-| Category          | Features                                         |
-| ----------------- | ------------------------------------------------ |
-| **Core**          | Component Registry, API Client, Type Definitions |
-| **Layers**        | ThemeManager (white-label theming)               |
-| **Primitives**    | Headless builder component patterns              |
-| **React Adapter** | Hooks and providers for React                    |
-
-### Design Philosophy
-
-- **Metadata-driven**: Components defined by JSON schemas
-- **Framework-agnostic core**: Pure TypeScript, React adapters optional
-- **Extensible**: Plugin-friendly architecture
-- **Type-safe**: Full TypeScript support
+| Category          | Features                                                   |
+| ----------------- | ---------------------------------------------------------- |
+| **Core**          | Component Registry, API Client, Type Definitions           |
+| **Layers**        | ThemeManager, DataLayer, StateLayer                        |
+| **Primitives**    | Headless builder component patterns                        |
+| **React Adapter** | `useVoltaQuery`, `useVoltaMutation`, `useVoltaStore` hooks |
 
 ## 📦 Installation
 
 ```bash
-npm install @voltakit/volta @sthirajs/core
+npm install @voltakit/volta
 ```
+
+> All `@sthirajs/*` packages are bundled—no extra dependencies needed!
 
 ## 🚀 Quick Start
 
-```typescript
-import { componentRegistry, ApiClient, themeManager } from '@voltakit/volta'
-import { react } from '@voltakit/volta'
+### Data Fetching
 
-// Register a custom component
-componentRegistry.register({
-  id: 'my-input',
-  type: 'input',
-  schema: { type: 'object', properties: { label: { type: 'string' } } },
-  defaultProps: { label: 'Default' },
-  renderMode: 'edit',
-  category: 'input',
+```typescript
+import { initDataLayer, getDataLayer } from '@voltakit/volta'
+
+// Initialize
+initDataLayer({
+  baseUrl: 'https://api.example.com',
+  cache: { staleTime: 60000 },
 })
 
-// Initialize API client
-const config = {
-  services: {
-    api: { baseUrl: 'https://api.example.com' },
-  },
-  endpoints: {
-    getUsers: { service: 'api', path: '/users', method: 'GET' },
-  },
-}
+// Use anywhere
+const users = await getDataLayer().get('/users')
+const user = await getDataLayer().get('/users/:id', { path: { id: '123' } })
+```
 
-// Apply tenant theme
-themeManager.loadTheme('tenant-123')
+### State Management
+
+```typescript
+import { initStateLayer, getStateLayer } from '@voltakit/volta'
+
+// Initialize
+initStateLayer({ enableDevTools: true })
+
+// Create stores
+const userStore = getStateLayer().createStore('user', {
+  initialState: { name: '', email: '' },
+})
+```
+
+### React Hooks
+
+```tsx
+import { react } from '@voltakit/volta'
+const { useVoltaQuery, useVoltaMutation, useVoltaStore } = react
+
+function UserList() {
+  const { data, isLoading } = useVoltaQuery('/users')
+
+  if (isLoading) return <div>Loading...</div>
+  return (
+    <ul>
+      {data?.map((user) => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
+  )
+}
 ```
 
 ## 📂 Project Structure
 
 ```
-volta/
-├── src/
-│   ├── core/           # Pure TypeScript (framework-agnostic)
-│   │   ├── api/        # ApiClient, errors, types
-│   │   ├── component-registry/
-│   │   └── types/
-│   │
-│   ├── layers/         # Application-level contexts
-│   │   └── ThemeManager.ts
-│   │
-│   ├── primitives/     # Headless builder components
-│   │
-│   ├── react/          # React adapter (optional)
-│   │   ├── hooks/
-│   │   └── providers/
-│   │
-│   └── index.ts
+src/
+├── core/                    # Pure TypeScript (framework-agnostic)
+│   ├── api/                 # ApiClient, errors, types
+│   ├── component-registry/
+│   └── types/
+│
+├── layers/                  # Application-level contexts
+│   ├── ThemeManager/        # White-label theming
+│   ├── DataLayer/           # Data fetching with caching
+│   └── StateLayer/          # State management
+│
+├── primitives/              # Headless builder components
+│
+├── react/                   # React adapter
+│   ├── hooks/               # useVoltaQuery, useVoltaMutation, useVoltaStore
+│   └── providers/
+│
+└── index.ts
 ```
-
-## 🔗 Peer Dependencies
-
-- `@sthirajs/core` - State management and data fetching
-- `react` (optional) - For React adapter
 
 ## 📚 Documentation
 
@@ -100,22 +111,15 @@ volta/
 ## 🛠️ Development
 
 ```bash
-# Install dependencies
-npm install
-
-# Build
-npm run build
-
-# Lint
-npm run lint
-
-# Test
-npm run test
+npm install    # Install dependencies
+npm run build  # Build
+npm run lint   # Lint
+npm run test   # Test (68 tests)
 ```
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md).
+Contributions welcome! See [Contributing Guide](CONTRIBUTING.md).
 
 ## 📄 License
 

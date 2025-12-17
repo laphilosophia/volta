@@ -2,7 +2,7 @@
 // ThemeManager - Generic Theme System (Pure TypeScript)
 // ============================================================================
 
-import { EVENT_NAMES, STORAGE_KEYS } from '../core/constants'
+import { EVENT_NAMES, STORAGE_KEYS } from '../../core/constants'
 
 /**
  * Configuration for creating a ThemeManager
@@ -255,5 +255,3 @@ export function createThemeManager<T extends object>(
 ): ThemeManager<T> {
   return new ThemeManager(config)
 }
-
-// Types are exported via interface declarations above

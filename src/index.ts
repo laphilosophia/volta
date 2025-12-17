@@ -5,9 +5,8 @@
 // Core (Pure TypeScript, framework-agnostic)
 export * from './core'
 
-// Layers (Application-level contexts)
-export { createThemeManager, ThemeManager } from './layers'
-export type { ThemeChangeEvent, ThemeManagerConfig } from './layers'
+// Layers (Application-level contexts: Theme, Data, State)
+export * from './layers'
 
 // Primitives (Headless builder components)
 export * from './primitives'

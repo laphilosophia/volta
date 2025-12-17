@@ -11,29 +11,193 @@ Volta provides a **layered architecture** with clear separation between framewor
 │                    Your Application                      │
 ├─────────────────────────────────────────────────────────┤
 │                    React Adapter                         │
-│         (ThemeProvider, useTheme, hooks)                 │
+│    (useVoltaQuery, useVoltaMutation, useVoltaStore)      │
 ├─────────────────────────────────────────────────────────┤
-│                      Layers                              │
-│              (Generic ThemeManager<T>)                   │
+│                       Layers                             │
+│       (ThemeManager, DataLayer, StateLayer)              │
 ├─────────────────────────────────────────────────────────┤
-│                       Core                               │
+│                        Core                              │
 │        (ComponentRegistry, ApiClient, Types)             │
 ├─────────────────────────────────────────────────────────┤
-│                   @sthirajs/core                         │
-│              (State Management Foundation)               │
+│                   @sthirajs/*                            │
+│        (fetch, core, devtools, cross-tab)                │
 └─────────────────────────────────────────────────────────┘
 ```
 
-## Core Layer (Pure TypeScript)
+## Layers
+
+### DataLayer
+
+High-level data fetching with caching, powered by `@sthirajs/fetch`.
+
+```typescript
+import { initDataLayer, getDataLayer } from '@voltakit/volta'
+
+// Initialize once
+initDataLayer({
+  baseUrl: 'https://api.example.com',
+  headers: { 'X-API-Key': 'secret' },
+  cache: {
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
+  },
+  interceptors: {
+    onError: (error) => console.error(error),
+  },
+})
+
+// Use anywhere
+const dataLayer = getDataLayer()
+const users = await dataLayer.get('/users')
+const user = await dataLayer.get('/users/:id', { path: { id: '123' } })
+await dataLayer.post('/users', { name: 'John' })
+dataLayer.invalidateCache('/users')
+```
+
+### StateLayer
+
+Centralized store registry with DevTools and cross-tab sync.
+
+```typescript
+import { initStateLayer, getStateLayer } from '@voltakit/volta'
+
+// Initialize once
+initStateLayer({
+  enableDevTools: true, // Redux DevTools
+  enableCrossTab: true, // Sync across tabs
+  namespace: 'myapp',
+})
+
+// Create stores
+const stateLayer = getStateLayer()
+
+const userStore = stateLayer.createStore('user', {
+  initialState: { name: '', email: '' },
+})
+
+const counterStore = stateLayer.createStore(
+  'counter',
+  { initialState: { count: 0 } },
+  (set, get) => ({
+    increment: () => set({ count: get().count + 1 }),
+  })
+)
+
+// Manage stores
+stateLayer.hasStore('user') // true
+stateLayer.getStoreNames() // ['myapp/user', 'myapp/counter']
+stateLayer.destroyStore('user')
+```
+
+### ThemeManager
+
+Generic theming with CSS variables and multi-tenant support.
+
+```typescript
+import { createThemeManager } from '@voltakit/volta'
+
+const themeManager = createThemeManager({
+  defaultTheme: {
+    colors: { brand: '#3B82F6', accent: '#10B981' },
+    typography: { fontFamily: 'Inter' },
+  },
+  cssVariables: (theme) => ({
+    '--color-brand': theme.colors.brand,
+  }),
+  cdnUrl: 'https://cdn.example.com',
+})
+
+themeManager.setTheme({ ... })
+await themeManager.loadTheme('tenant-123')
+themeManager.toggleDarkMode()
+```
+
+## React Hooks
+
+### useVoltaQuery
+
+Data fetching with caching and automatic refetch.
+
+```tsx
+import { react } from '@voltakit/volta'
+const { useVoltaQuery } = react
+
+function UserList() {
+  const { data, isLoading, error, refetch } = useVoltaQuery('/users', {
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
+  })
+
+  if (isLoading) return <div>Loading...</div>
+  if (error) return <div>Error: {error.message}</div>
+
+  return (
+    <ul>
+      {data?.map((user) => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
+  )
+}
+```
+
+### useVoltaMutation
+
+Mutations with optimistic updates.
+
+```tsx
+const { useVoltaMutation } = react
+
+function CreateUser() {
+  const { mutate, isLoading } = useVoltaMutation('/users', {
+    method: 'POST',
+    invalidates: ['/users'],
+    onSuccess: (user) => console.log('Created:', user),
+  })
+
+  return (
+    <button onClick={() => mutate({ name: 'John' })} disabled={isLoading}>
+      Create User
+    </button>
+  )
+}
+```
+
+### useVoltaStore
+
+Consume Sthira stores with selector support.
+
+```tsx
+const { useVoltaStore } = react
+
+function Counter() {
+  const { count } = useVoltaStore(counterStore)
+  const actions = counterStore.actions
+
+  return (
+    <div>
+      <span>{count}</span>
+      <button onClick={actions.increment}>+</button>
+    </div>
+  )
+}
+
+// With selector
+function UserName() {
+  const name = useVoltaStore(userStore, (state) => state.name)
+  return <div>{name}</div>
+}
+```
+
+## Core
 
 ### Component Registry
 
-Manages dynamic component registration and lazy loading.
+Dynamic component registration with lazy loading.
 
 ```typescript
 import { componentRegistry } from '@voltakit/volta'
 
-// Register a component
 componentRegistry.register(
   {
     id: 'custom-input',
@@ -47,129 +211,12 @@ componentRegistry.register(
   },
   () => import('./components/CustomInput')
 )
-
-// Get a component
-const def = componentRegistry.get('custom-input')
-
-// Get lazy loader
-const LazyComponent = componentRegistry.getLoader('custom-input')
-```
-
-### API Client
-
-Configuration-driven HTTP client with CSRF protection and error handling.
-
-```typescript
-import { ApiClient, initApiClient } from '@voltakit/volta'
-
-const config = {
-  services: {
-    main: {
-      baseUrl: 'https://api.example.com',
-      auth: { type: 'bearer', tokenStorageKey: 'auth_token' },
-    },
-  },
-  endpoints: {
-    getUsers: { service: 'main', path: '/users', method: 'GET' },
-  },
-}
-
-initApiClient(config)
-```
-
-## Layers
-
-### ThemeManager<T> (Generic)
-
-Fully generic theming system - define your own theme structure.
-
-```typescript
-import { createThemeManager } from '@voltakit/volta'
-
-// 1. Define your theme type
-interface MyTheme {
-  colors: {
-    brand: string
-    accent: string
-    background: string
-  }
-  typography: {
-    fontFamily: string
-    fontSize: number
-  }
-}
-
-// 2. Create theme manager
-const themeManager = createThemeManager<MyTheme>({
-  defaultTheme: {
-    colors: {
-      brand: '#3B82F6',
-      accent: '#10B981',
-      background: '#FFFFFF',
-    },
-    typography: {
-      fontFamily: 'Inter, sans-serif',
-      fontSize: 16,
-    },
-  },
-
-  // Optional: Map to CSS variables
-  cssVariables: (theme) => ({
-    '--color-brand': theme.colors.brand,
-    '--color-accent': theme.colors.accent,
-    '--font-family': theme.typography.fontFamily,
-  }),
-
-  // Optional: CDN for multi-tenant themes
-  cdnUrl: 'https://cdn.example.com',
-})
-
-// 3. Use the theme
-themeManager.setTheme({ ... })
-themeManager.updateTheme({ colors: { brand: '#FF0000' } })
-await themeManager.loadTheme('tenant-123')
-themeManager.toggleDarkMode()
-```
-
-## React Adapter
-
-React-specific providers and hooks.
-
-```typescript
-import { createThemeManager, react } from '@voltakit/volta'
-const { ThemeProvider, useTheme, useThemeValue } = react
-
-// Wrap your app
-function App() {
-  return (
-    <ThemeProvider manager={themeManager} initDarkMode>
-      <MyApp />
-    </ThemeProvider>
-  )
-}
-
-// Use in components
-function MyComponent() {
-  const { theme, setTheme, toggleDarkMode } = useTheme<MyTheme>()
-
-  return (
-    <div style={{ color: theme.colors.brand }}>
-      <button onClick={() => toggleDarkMode()}>Toggle Dark</button>
-    </div>
-  )
-}
-
-// Or use specific value
-function ColorDisplay() {
-  const brand = useThemeValue('colors.brand') as string
-  return <div style={{ color: brand }}>Branded</div>
-}
 ```
 
 ## Design Principles
 
-1. **Generic by default**: No opinionated theme structure
-2. **Framework-agnostic core**: Pure TypeScript, React adapters optional
-3. **CSS-flexible**: Map to CSS variables, CSS-in-JS, or raw values
-4. **Multi-tenant ready**: CDN-based tenant theme loading
-5. **Type-safe**: Full TypeScript generics support
+1. **Layered Architecture**: Clear separation between core, layers, and adapters
+2. **Framework-agnostic Core**: Pure TypeScript, React adapters optional
+3. **Sthira Integration**: Built on `@sthirajs/*` ecosystem
+4. **Type-safe**: Full TypeScript generics support
+5. **Multi-tenant Ready**: CDN-based tenant theme loading

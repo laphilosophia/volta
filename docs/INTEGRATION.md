@@ -5,56 +5,141 @@ This guide explains how to integrate Volta into your LC/NC platform.
 ## Installation
 
 ```bash
-npm install @voltakit/volta @sthirajs/core
+npm install @voltakit/volta
 ```
 
-## Basic Setup
+> All dependencies are bundled—no peer deps required!
 
-### 1. Configure API Client
+## Quick Setup
 
-Create a configuration file for your API endpoints:
+### 1. Initialize Layers
 
 ```typescript
-// volta.config.ts
-import type { VoltaConfig } from '@voltakit/volta'
+// app.ts
+import { initDataLayer, initStateLayer } from '@voltakit/volta'
 
-export const voltaConfig: VoltaConfig = {
-  services: {
-    main: {
-      baseUrl: process.env.API_URL || 'https://api.example.com',
-      auth: {
-        type: 'bearer',
-        tokenStorageKey: 'auth_token',
-      },
+// Initialize data layer
+initDataLayer({
+  baseUrl: process.env.API_URL || 'https://api.example.com',
+  headers: {
+    Authorization: `Bearer ${getToken()}`,
+  },
+  cache: {
+    staleTime: 5 * 60 * 1000, // 5 min
+  },
+})
+
+// Initialize state layer
+initStateLayer({
+  enableDevTools: process.env.NODE_ENV === 'development',
+  enableCrossTab: true,
+})
+```
+
+### 2. Create Stores
+
+```typescript
+// stores/user.ts
+import { getStateLayer } from '@voltakit/volta'
+
+export const userStore = getStateLayer().createStore(
+  'user',
+  {
+    initialState: {
+      id: null,
+      name: '',
+      email: '',
     },
   },
-  endpoints: {
-    getUsers: { service: 'main', path: '/users', method: 'GET' },
-    createUser: { service: 'main', path: '/users', method: 'POST' },
-    updateUser: { service: 'main', path: '/users/:id', method: 'PUT' },
-  },
+  (set) => ({
+    setUser: (user) => set(user),
+    logout: () => set({ id: null, name: '', email: '' }),
+  })
+)
+```
+
+### 3. Use in React
+
+```tsx
+// components/UserProfile.tsx
+import { react } from '@voltakit/volta'
+import { userStore } from '../stores/user'
+
+const { useVoltaQuery, useVoltaStore } = react
+
+export function UserProfile() {
+  const user = useVoltaStore(userStore)
+  const { data, isLoading } = useVoltaQuery(`/users/${user.id}`, {
+    enabled: !!user.id,
+  })
+
+  if (isLoading) return <div>Loading...</div>
+
+  return (
+    <div>
+      <h1>{data?.name}</h1>
+      <p>{data?.email}</p>
+    </div>
+  )
 }
 ```
 
-### 2. Initialize in Your App
+## Mutations
 
-```typescript
-import { initApiClient, themeManager } from '@voltakit/volta'
-import { voltaConfig } from './volta.config'
+```tsx
+import { react } from '@voltakit/volta'
+const { useVoltaMutation } = react
 
-// Initialize API client
-initApiClient(voltaConfig)
+function CreatePost() {
+  const { mutate, isLoading, isSuccess } = useVoltaMutation('/posts', {
+    method: 'POST',
+    invalidates: ['/posts'],
+    onSuccess: (post) => {
+      console.log('Created:', post)
+    },
+  })
 
-// Initialize theming
-themeManager.initDarkMode()
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        mutate({ title: 'New Post', body: '...' })
+      }}
+    >
+      <button disabled={isLoading}>{isLoading ? 'Creating...' : 'Create Post'}</button>
+    </form>
+  )
+}
 ```
 
-### 3. Register Components
+## Theming
+
+```typescript
+import { createThemeManager } from '@voltakit/volta'
+
+const themeManager = createThemeManager({
+  defaultTheme: {
+    colors: { brand: '#3B82F6' },
+  },
+  cssVariables: (theme) => ({
+    '--brand': theme.colors.brand,
+  }),
+  cdnUrl: 'https://cdn.example.com',
+})
+
+// Load tenant theme
+await themeManager.loadTheme('tenant-123')
+
+// Toggle dark mode
+themeManager.initDarkMode()
+themeManager.toggleDarkMode()
+```
+
+## Component Registry
 
 ```typescript
 import { componentRegistry } from '@voltakit/volta'
 
-// Register your custom components
 componentRegistry.register(
   {
     id: 'my-component',
@@ -63,57 +148,9 @@ componentRegistry.register(
     defaultProps: {},
     renderMode: 'view',
     category: 'display',
-    label: { en: 'My Component', tr: 'Bileşenim' },
   },
   () => import('./components/MyComponent')
 )
-```
-
-## Using with React
-
-```typescript
-import { react } from '@voltakit/volta'
-
-// React hooks and providers are available via react namespace
-// Full implementation coming with @sthirajs/fetch integration
-```
-
-## Theming
-
-### Apply Tenant Theme
-
-```typescript
-import { themeManager } from '@voltakit/volta'
-
-// Load from CDN
-await themeManager.loadTheme('tenant-id')
-
-// Or apply directly
-themeManager.applyTheme({
-  tenantId: 'custom',
-  colors: {
-    primary: '#3B82F6',
-    secondary: '#8B5CF6',
-    accent: '#10B981',
-    neutral: '#6B7280',
-  },
-  logo: '/logo.svg',
-  favicon: '/favicon.ico',
-})
-```
-
-### Dark Mode
-
-```typescript
-// Toggle dark mode
-themeManager.toggleDarkMode()
-
-// Set specific mode
-themeManager.toggleDarkMode(true) // Enable
-themeManager.toggleDarkMode(false) // Disable
-
-// Initialize from user preference
-themeManager.initDarkMode()
 ```
 
 ## API Reference
