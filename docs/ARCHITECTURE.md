@@ -31,7 +31,7 @@ Volta provides a **layered architecture** with clear separation between framewor
 Manages dynamic component registration and lazy loading.
 
 ```typescript
-import { componentRegistry } from 'volta'
+import { componentRegistry } from '@voltakit/volta'
 
 // Register a component
 componentRegistry.register(
@@ -60,7 +60,7 @@ const LazyComponent = componentRegistry.getLoader('custom-input')
 Configuration-driven HTTP client with CSRF protection and error handling.
 
 ```typescript
-import { ApiClient, initApiClient } from 'volta'
+import { ApiClient, initApiClient } from '@voltakit/volta'
 
 const config = {
   services: {
@@ -84,7 +84,7 @@ initApiClient(config)
 Fully generic theming system - define your own theme structure.
 
 ```typescript
-import { createThemeManager } from 'volta'
+import { createThemeManager } from '@voltakit/volta'
 
 // 1. Define your theme type
 interface MyTheme {
@@ -136,7 +136,7 @@ themeManager.toggleDarkMode()
 React-specific providers and hooks.
 
 ```typescript
-import { createThemeManager, react } from 'volta'
+import { createThemeManager, react } from '@voltakit/volta'
 const { ThemeProvider, useTheme, useThemeValue } = react
 
 // Wrap your app

@@ -5,7 +5,7 @@ This guide explains how to integrate Volta into your LC/NC platform.
 ## Installation
 
 ```bash
-npm install volta @sthirajs/core
+npm install @voltakit/volta @sthirajs/core
 ```
 
 ## Basic Setup
@@ -16,7 +16,7 @@ Create a configuration file for your API endpoints:
 
 ```typescript
 // volta.config.ts
-import type { VoltaConfig } from 'volta'
+import type { VoltaConfig } from '@voltakit/volta'
 
 export const voltaConfig: VoltaConfig = {
   services: {
@@ -39,7 +39,7 @@ export const voltaConfig: VoltaConfig = {
 ### 2. Initialize in Your App
 
 ```typescript
-import { initApiClient, themeManager } from 'volta'
+import { initApiClient, themeManager } from '@voltakit/volta'
 import { voltaConfig } from './volta.config'
 
 // Initialize API client
@@ -52,7 +52,7 @@ themeManager.initDarkMode()
 ### 3. Register Components
 
 ```typescript
-import { componentRegistry } from 'volta'
+import { componentRegistry } from '@voltakit/volta'
 
 // Register your custom components
 componentRegistry.register(
@@ -72,7 +72,7 @@ componentRegistry.register(
 ## Using with React
 
 ```typescript
-import { react } from 'volta'
+import { react } from '@voltakit/volta'
 
 // React hooks and providers are available via react namespace
 // Full implementation coming with @sthirajs/fetch integration
@@ -83,7 +83,7 @@ import { react } from 'volta'
 ### Apply Tenant Theme
 
 ```typescript
-import { themeManager } from 'volta'
+import { themeManager } from '@voltakit/volta'
 
 // Load from CDN
 await themeManager.loadTheme('tenant-id')
