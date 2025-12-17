@@ -26,6 +26,8 @@ Volta is a **toolkit for developers who want to build low-code/no-code platforms
 npm install @voltakit/volta
 ```
 
+> @voltakit/volta uses @sthirajs/\* under the hood. For a detailed explanation, see [Sthira](https://github.com/laphilosophia/sthira).
+
 > All `@sthirajs/*` packages are bundled—no extra dependencies needed!
 
 ## 🚀 Quick Start
