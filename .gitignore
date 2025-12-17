@@ -32,3 +32,4 @@ test-results
 
 # npm auth
 .npmrc
+signals-design.md

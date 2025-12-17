@@ -3,6 +3,18 @@
 // ============================================================================
 
 /**
+ * Retry configuration for failed requests
+ */
+export interface RetryConfig {
+  /** Number of retry attempts (default: 3, false to disable) */
+  count?: number | false
+  /** Delay between retries in ms (default: 1000) */
+  delay?: number
+  /** Backoff strategy (default: 'exponential') */
+  backoff?: 'linear' | 'exponential'
+}
+
+/**
  * Configuration for DataLayer instance
  */
 export interface DataLayerConfig {
@@ -14,6 +26,10 @@ export interface DataLayerConfig {
   cache?: CacheConfig
   /** Request interceptors */
   interceptors?: DataLayerInterceptors
+  /** Global retry configuration */
+  retry?: RetryConfig
+  /** Global request timeout in ms (default: 30000) */
+  timeout?: number
 }
 
 /**
@@ -115,4 +131,10 @@ export interface RequestParams {
   path?: Record<string, string | number>
   /** Query string parameters */
   query?: Record<string, string | number | boolean | undefined>
+  /** Override retry config for this request */
+  retry?: RetryConfig | false
+  /** Override timeout for this request (in ms) */
+  timeout?: number
+  /** Abort signal for request cancellation */
+  signal?: AbortSignal
 }

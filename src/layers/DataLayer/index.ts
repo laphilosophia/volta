@@ -13,4 +13,17 @@ export type {
   QueryOptions,
   QueryState,
   RequestParams,
+  RetryConfig,
 } from './types'
+
+// Query Store - DataLayer-StateLayer Bridge
+export {
+  createQueryKey,
+  keyToString,
+  type QueryConfig,
+  type QueryEntry,
+  type QueryKey,
+  type QueryStatus,
+  type QueryStoreActions,
+  type QueryStoreState,
+} from './queryStore'

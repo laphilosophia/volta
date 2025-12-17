@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { createFetchSource, getQueryCache, type FetchSourceConfig } from '@sthirajs/fetch'
-import type { CacheConfig, DataLayerConfig, RequestParams } from './types'
+import type { CacheConfig, DataLayerConfig, RequestParams, RetryConfig } from './types'
 import { DataLayerError } from './types'
 export { DataLayerError }
 
@@ -13,6 +13,14 @@ const DEFAULT_CACHE_CONFIG: Required<CacheConfig> = {
   cacheTime: 10 * 60 * 1000, // 10 minutes
 }
 
+const DEFAULT_RETRY_CONFIG: Required<Omit<RetryConfig, 'count'>> & { count: number } = {
+  count: 3,
+  delay: 1000,
+  backoff: 'exponential',
+}
+
+const DEFAULT_TIMEOUT = 30000 // 30 seconds
+
 /**
  * DataLayer provides a high-level API for data fetching with caching,
  * request deduplication, and error handling.
@@ -21,7 +29,9 @@ const DEFAULT_CACHE_CONFIG: Required<CacheConfig> = {
  * ```typescript
  * const dataLayer = new DataLayer({
  *   baseUrl: 'https://api.example.com',
- *   cache: { enabled: true, staleTime: 60000 }
+ *   cache: { enabled: true, staleTime: 60000 },
+ *   retry: { count: 3, delay: 1000 },
+ *   timeout: 30000
  * })
  *
  * const users = await dataLayer.get('/users')
@@ -30,11 +40,19 @@ const DEFAULT_CACHE_CONFIG: Required<CacheConfig> = {
 export class DataLayer {
   private config: DataLayerConfig
   private cacheConfig: Required<CacheConfig>
+  private retryConfig: Required<Omit<RetryConfig, 'count'>> & { count: number | false }
+  private timeout: number
   private queryCache = getQueryCache()
 
   constructor(config: DataLayerConfig) {
     this.config = config
     this.cacheConfig = { ...DEFAULT_CACHE_CONFIG, ...config.cache }
+    this.retryConfig = {
+      ...DEFAULT_RETRY_CONFIG,
+      ...config.retry,
+      count: config.retry?.count ?? DEFAULT_RETRY_CONFIG.count,
+    }
+    this.timeout = config.timeout ?? DEFAULT_TIMEOUT
   }
 
   /**
@@ -42,7 +60,7 @@ export class DataLayer {
    */
   async get<T>(endpoint: string, params?: RequestParams): Promise<T> {
     const url = this.buildUrl(endpoint, params)
-    return this.executeRequest<T>('GET', url, endpoint)
+    return this.executeRequest<T>('GET', url, endpoint, undefined, params)
   }
 
   /**
@@ -50,7 +68,7 @@ export class DataLayer {
    */
   async post<T>(endpoint: string, body?: unknown, params?: RequestParams): Promise<T> {
     const url = this.buildUrl(endpoint, params)
-    return this.executeRequest<T>('POST', url, endpoint, body)
+    return this.executeRequest<T>('POST', url, endpoint, body, params)
   }
 
   /**
@@ -58,7 +76,7 @@ export class DataLayer {
    */
   async put<T>(endpoint: string, body?: unknown, params?: RequestParams): Promise<T> {
     const url = this.buildUrl(endpoint, params)
-    return this.executeRequest<T>('PUT', url, endpoint, body)
+    return this.executeRequest<T>('PUT', url, endpoint, body, params)
   }
 
   /**
@@ -66,7 +84,7 @@ export class DataLayer {
    */
   async patch<T>(endpoint: string, body?: unknown, params?: RequestParams): Promise<T> {
     const url = this.buildUrl(endpoint, params)
-    return this.executeRequest<T>('PATCH', url, endpoint, body)
+    return this.executeRequest<T>('PATCH', url, endpoint, body, params)
   }
 
   /**
@@ -74,7 +92,7 @@ export class DataLayer {
    */
   async delete<T>(endpoint: string, params?: RequestParams): Promise<T> {
     const url = this.buildUrl(endpoint, params)
-    return this.executeRequest<T>('DELETE', url, endpoint)
+    return this.executeRequest<T>('DELETE', url, endpoint, undefined, params)
   }
 
   /**
@@ -118,8 +136,15 @@ export class DataLayer {
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
     url: string,
     endpoint: string,
-    body?: unknown
+    body?: unknown,
+    params?: RequestParams
   ): Promise<T> {
+    // Determine retry config (per-request override or global default)
+    const retryConfig = params?.retry === false ? false : (params?.retry ?? this.retryConfig)
+
+    // Determine timeout (per-request override or global default)
+    const timeout = params?.timeout ?? this.timeout
+
     try {
       const config: FetchSourceConfig<T> = {
         url,
@@ -127,6 +152,14 @@ export class DataLayer {
         headers: this.config.headers,
         staleTime: this.cacheConfig.staleTime,
         cacheTime: this.cacheConfig.cacheTime,
+        // Retry configuration
+        retry: retryConfig === false ? false : retryConfig.count,
+        retryDelay: retryConfig === false ? undefined : retryConfig.delay,
+        // Timeout and abort signal
+        timeout,
+        signal: params?.signal,
+        // Cancel previous request for queries
+        cancelOnNewRequest: method === 'GET',
         onError: (error) => {
           if (this.config.interceptors?.onError) {
             this.config.interceptors.onError(
@@ -150,6 +183,10 @@ export class DataLayer {
       return data
     } catch (error) {
       const err = error as Error
+      // Handle abort errors specifically
+      if (err.name === 'AbortError') {
+        throw new DataLayerError('Request aborted', undefined, endpoint, error)
+      }
       throw new DataLayerError(err.message || 'An error occurred', undefined, endpoint, error)
     }
   }

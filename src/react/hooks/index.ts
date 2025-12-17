@@ -11,3 +11,7 @@ export type { UseVoltaMutationOptions, UseVoltaMutationResult } from './useVolta
 
 // State Management Hook
 export { useVoltaStore } from './useVoltaStore'
+
+// Unified Registry Hook (v0.4.0)
+export { createTypedQueryKey, useVoltaRegistry } from './useVoltaRegistry'
+export type { RegistryConfig, RegistryResult } from './useVoltaRegistry'
