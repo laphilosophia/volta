@@ -11,10 +11,10 @@ Volta provides a **layered architecture** with clear separation between framewor
 │                    Your Application                      │
 ├─────────────────────────────────────────────────────────┤
 │                    React Adapter                         │
-│              (hooks, providers, contexts)                │
+│         (ThemeProvider, useTheme, hooks)                 │
 ├─────────────────────────────────────────────────────────┤
 │                      Layers                              │
-│           (ThemeManager, DataLayer, StateLayer)          │
+│              (Generic ThemeManager<T>)                   │
 ├─────────────────────────────────────────────────────────┤
 │                       Core                               │
 │        (ComponentRegistry, ApiClient, Types)             │
@@ -79,56 +79,97 @@ initApiClient(config)
 
 ## Layers
 
-### ThemeManager
+### ThemeManager<T> (Generic)
 
-White-label theming with CSS variable injection and dark mode support.
+Fully generic theming system - define your own theme structure.
 
 ```typescript
-import { themeManager } from 'volta'
+import { createThemeManager } from 'volta'
 
-// Load tenant theme from CDN
-await themeManager.loadTheme('tenant-123')
-
-// Apply theme directly
-themeManager.applyTheme({
-  tenantId: 'custom',
+// 1. Define your theme type
+interface MyTheme {
   colors: {
-    primary: '#3B82F6',
-    secondary: '#8B5CF6',
-    accent: '#10B981',
-    neutral: '#6B7280',
+    brand: string
+    accent: string
+    background: string
+  }
+  typography: {
+    fontFamily: string
+    fontSize: number
+  }
+}
+
+// 2. Create theme manager
+const themeManager = createThemeManager<MyTheme>({
+  defaultTheme: {
+    colors: {
+      brand: '#3B82F6',
+      accent: '#10B981',
+      background: '#FFFFFF',
+    },
+    typography: {
+      fontFamily: 'Inter, sans-serif',
+      fontSize: 16,
+    },
   },
-  logo: '/logo.svg',
-  favicon: '/favicon.ico',
+
+  // Optional: Map to CSS variables
+  cssVariables: (theme) => ({
+    '--color-brand': theme.colors.brand,
+    '--color-accent': theme.colors.accent,
+    '--font-family': theme.typography.fontFamily,
+  }),
+
+  // Optional: CDN for multi-tenant themes
+  cdnUrl: 'https://cdn.example.com',
 })
 
-// Toggle dark mode
+// 3. Use the theme
+themeManager.setTheme({ ... })
+themeManager.updateTheme({ colors: { brand: '#FF0000' } })
+await themeManager.loadTheme('tenant-123')
 themeManager.toggleDarkMode()
 ```
 
 ## React Adapter
 
-Optional React-specific hooks and providers (requires React peer dependency).
+React-specific providers and hooks.
 
 ```typescript
-import { react } from 'volta'
+import { createThemeManager, react } from 'volta'
+const { ThemeProvider, useTheme, useThemeValue } = react
 
-// Hooks (coming soon with @sthirajs/fetch)
-// const { data, isLoading } = react.hooks.useVoltaQuery('getUsers')
+// Wrap your app
+function App() {
+  return (
+    <ThemeProvider manager={themeManager} initDarkMode>
+      <MyApp />
+    </ThemeProvider>
+  )
+}
+
+// Use in components
+function MyComponent() {
+  const { theme, setTheme, toggleDarkMode } = useTheme<MyTheme>()
+
+  return (
+    <div style={{ color: theme.colors.brand }}>
+      <button onClick={() => toggleDarkMode()}>Toggle Dark</button>
+    </div>
+  )
+}
+
+// Or use specific value
+function ColorDisplay() {
+  const brand = useThemeValue('colors.brand') as string
+  return <div style={{ color: brand }}>Branded</div>
+}
 ```
 
 ## Design Principles
 
-1. **Metadata-driven**: Components and pages defined by JSON schemas
-2. **Framework-agnostic core**: Pure TypeScript, no React dependency
-3. **Lazy loading**: Components loaded on-demand for performance
-4. **Type-safe**: Full TypeScript support with generics
-5. **Extensible**: Plugin-friendly architecture
-
-## Integration with Sthira
-
-Volta uses `@sthirajs/core` as its state management foundation:
-
-- **Data fetching**: Uses Sthira's fetch plugin
-- **State management**: Distributed stores via Sthira
-- **DevTools**: Compatible with Sthira DevTools
+1. **Generic by default**: No opinionated theme structure
+2. **Framework-agnostic core**: Pure TypeScript, React adapters optional
+3. **CSS-flexible**: Map to CSS variables, CSS-in-JS, or raw values
+4. **Multi-tenant ready**: CDN-based tenant theme loading
+5. **Type-safe**: Full TypeScript generics support

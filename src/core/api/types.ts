@@ -39,6 +39,30 @@ export interface EndpointDefinition {
 }
 
 /**
+ * Theme layer configuration
+ */
+export interface ThemeConfig {
+  /**
+   * CDN URL for fetching tenant themes
+   * @default 'https://cdn.yourapp.com'
+   */
+  cdnUrl?: string
+  /**
+   * Default theme to use when tenant theme is not available
+   */
+  defaultTheme?: {
+    colors?: {
+      primary?: string
+      secondary?: string
+      accent?: string
+      neutral?: string
+    }
+    logo?: string
+    favicon?: string
+  }
+}
+
+/**
  * The main configuration object for a Volta application.
  */
 export interface VoltaConfig {
@@ -51,4 +75,9 @@ export interface VoltaConfig {
    * Library of all available endpoints
    */
   endpoints: Record<string, EndpointDefinition>
+
+  /**
+   * Theme layer configuration
+   */
+  theme?: ThemeConfig
 }

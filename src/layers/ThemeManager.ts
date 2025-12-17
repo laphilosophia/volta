@@ -1,166 +1,162 @@
 // ============================================================================
-// ThemeManager - White-label Theming System (Pure TypeScript)
+// ThemeManager - Generic Theme System (Pure TypeScript)
 // ============================================================================
 
-/** Tenant theme configuration */
-export interface TenantTheme {
-  tenantId: string
-  colors: {
-    primary: string
-    secondary: string
-    accent: string
-    neutral: string
-  }
-  logo: string
-  favicon: string
+/**
+ * Configuration for creating a ThemeManager
+ */
+export interface ThemeManagerConfig<T extends object> {
+  /**
+   * Default theme to use when no tenant theme is loaded
+   */
+  defaultTheme: T
+
+  /**
+   * Optional: Map theme values to CSS variables
+   * If provided, variables will be applied to :root when theme changes
+   */
+  cssVariables?: (theme: T) => Record<string, string>
+
+  /**
+   * Optional: CDN URL for fetching tenant themes
+   */
+  cdnUrl?: string
 }
 
-// Default CDN URL (can be configured per deployment)
-const DEFAULT_CDN_URL = 'https://cdn.yourapp.com'
+/**
+ * Theme change event detail
+ */
+export interface ThemeChangeEvent<T> {
+  theme: T
+  tenantId?: string
+}
 
 /**
- * ThemeManager handles tenant-specific theming with caching and runtime CSS variable injection.
+ * Generic ThemeManager for any theme structure
+ * Supports CSS variables injection and multi-tenant theming
  */
-class ThemeManager {
-  private cache = new Map<string, TenantTheme>()
-  private cdnUrl: string
-  private currentTheme: TenantTheme | null = null
+export class ThemeManager<T extends object> {
+  private config: ThemeManagerConfig<T>
+  private currentTheme: T
+  private currentTenantId?: string
+  private cache = new Map<string, T>()
+  private subscribers = new Set<(theme: T) => void>()
 
-  constructor(cdnUrl = DEFAULT_CDN_URL) {
-    this.cdnUrl = cdnUrl
+  constructor(config: ThemeManagerConfig<T>) {
+    this.config = config
+    this.currentTheme = config.defaultTheme
   }
 
-  /**
-   * Set the CDN URL for fetching themes
-   */
-  setCdnUrl(url: string): void {
-    this.cdnUrl = url
-  }
+  // ===========================================================================
+  // Public API
+  // ===========================================================================
 
   /**
-   * Get the current active theme
+   * Get the current theme
    */
-  getCurrentTheme(): TenantTheme | null {
+  getTheme(): T {
     return this.currentTheme
   }
 
   /**
-   * Load and apply theme for a specific tenant
+   * Get a specific value from the theme using dot notation
+   * @example theme.get('colors.primary')
    */
-  async loadTheme(tenantId: string): Promise<TenantTheme> {
-    // Check cache first
-    if (this.cache.has(tenantId)) {
-      const cachedTheme = this.cache.get(tenantId)!
-      this.applyTheme(cachedTheme)
-      return cachedTheme
+  get<K extends string>(path: K): unknown {
+    return path.split('.').reduce((obj: unknown, key) => {
+      if (obj && typeof obj === 'object' && key in obj) {
+        return (obj as Record<string, unknown>)[key]
+      }
+      return undefined
+    }, this.currentTheme)
+  }
+
+  /**
+   * Set the theme directly
+   */
+  setTheme(theme: T, tenantId?: string): void {
+    this.currentTheme = theme
+    this.currentTenantId = tenantId
+    this.applyCSS()
+    this.notify()
+    this.emitEvent()
+  }
+
+  /**
+   * Update partial theme values (merge with current)
+   */
+  updateTheme(partial: Partial<T>): void {
+    this.currentTheme = this.deepMerge(this.currentTheme, partial)
+    this.applyCSS()
+    this.notify()
+    this.emitEvent()
+  }
+
+  /**
+   * Load theme for a tenant from CDN
+   */
+  async loadTheme(tenantId: string): Promise<T> {
+    // Check cache
+    const cached = this.cache.get(tenantId)
+    if (cached) {
+      this.setTheme(cached, tenantId)
+      return cached
+    }
+
+    // Fetch from CDN
+    const cdnUrl = this.config.cdnUrl
+    if (!cdnUrl) {
+      console.warn('No CDN URL configured, using default theme')
+      return this.currentTheme
     }
 
     try {
-      // Fetch theme from CDN
-      const response = await fetch(`${this.cdnUrl}/themes/${tenantId}.json`)
+      const response = await fetch(`${cdnUrl}/themes/${tenantId}.json`)
 
       if (!response.ok) {
-        console.warn(`Theme not found for tenant: ${tenantId}, using default`)
-        return this.getDefaultTheme()
+        console.warn(`Theme not found for tenant: ${tenantId}`)
+        return this.currentTheme
       }
 
-      const theme: TenantTheme = await response.json()
+      const theme: T = await response.json()
       this.cache.set(tenantId, theme)
-      this.applyTheme(theme)
+      this.setTheme(theme, tenantId)
       return theme
     } catch (error) {
       console.error('Failed to load theme:', error)
-      return this.getDefaultTheme()
+      return this.currentTheme
     }
   }
 
   /**
-   * Apply theme directly (for local/preview mode)
+   * Reset to default theme
    */
-  applyTheme(theme: TenantTheme): void {
-    this.currentTheme = theme
-
-    // Only apply if running in browser
-    if (typeof document !== 'undefined') {
-      const root = document.documentElement
-
-      // Set color CSS variables
-      root.style.setProperty('--color-primary', theme.colors.primary)
-      root.style.setProperty('--color-secondary', theme.colors.secondary)
-      root.style.setProperty('--color-accent', theme.colors.accent)
-      root.style.setProperty('--color-neutral', theme.colors.neutral)
-
-      // Derived colors
-      root.style.setProperty(
-        '--color-primary-light',
-        `color-mix(in srgb, ${theme.colors.primary} 20%, white)`
-      )
-      root.style.setProperty(
-        '--color-primary-dark',
-        `color-mix(in srgb, ${theme.colors.primary} 80%, black)`
-      )
-
-      // Update favicon
-      this.updateFavicon(theme.favicon)
-
-      // Emit theme change event
-      window.dispatchEvent(new CustomEvent('themeChange', { detail: theme }))
-    }
+  reset(): void {
+    this.setTheme(this.config.defaultTheme)
+    this.currentTenantId = undefined
   }
 
   /**
-   * Update favicon dynamically
+   * Subscribe to theme changes
    */
-  private updateFavicon(faviconUrl: string): void {
-    if (typeof document === 'undefined') return
-
-    let favicon = document.querySelector('link[rel="icon"]') as HTMLLinkElement | null
-
-    if (!favicon) {
-      favicon = document.createElement('link')
-      favicon.rel = 'icon'
-      document.head.appendChild(favicon)
-    }
-
-    favicon.href = faviconUrl
+  subscribe(callback: (theme: T) => void): () => void {
+    this.subscribers.add(callback)
+    return () => this.subscribers.delete(callback)
   }
 
   /**
-   * Get default theme when tenant theme is not available
+   * Get current tenant ID (if loaded from CDN)
    */
-  getDefaultTheme(): TenantTheme {
-    const defaultTheme: TenantTheme = {
-      tenantId: 'default',
-      colors: {
-        primary: '#3B82F6',
-        secondary: '#8B5CF6',
-        accent: '#10B981',
-        neutral: '#6B7280',
-      },
-      logo: '/logo.svg',
-      favicon: '/favicon.ico',
-    }
-
-    this.applyTheme(defaultTheme)
-    return defaultTheme
+  getTenantId(): string | undefined {
+    return this.currentTenantId
   }
 
-  /**
-   * Clear theme cache
-   */
-  clearCache(): void {
-    this.cache.clear()
-  }
+  // ===========================================================================
+  // Dark Mode Support
+  // ===========================================================================
 
   /**
-   * Pre-load multiple themes for faster switching
-   */
-  async preloadThemes(tenantIds: string[]): Promise<void> {
-    await Promise.all(tenantIds.map((id) => this.loadTheme(id)))
-  }
-
-  /**
-   * Toggle dark mode
+   * Toggle dark mode class on document
    */
   toggleDarkMode(enabled?: boolean): boolean {
     if (typeof document === 'undefined') return false
@@ -169,25 +165,93 @@ class ThemeManager {
     document.documentElement.classList.toggle('dark', isDark)
 
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('darkMode', String(isDark))
+      localStorage.setItem('volta-dark-mode', String(isDark))
     }
+
     return isDark
   }
 
   /**
    * Initialize dark mode from user preference
    */
-  initDarkMode(): void {
+  initDarkMode(): boolean {
+    if (typeof window === 'undefined') return false
+
+    const saved = localStorage.getItem('volta-dark-mode')
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const shouldBeDark = saved !== null ? saved === 'true' : prefersDark
+
+    return this.toggleDarkMode(shouldBeDark)
+  }
+
+  // ===========================================================================
+  // Private Methods
+  // ===========================================================================
+
+  private applyCSS(): void {
+    if (typeof document === 'undefined') return
+    if (!this.config.cssVariables) return
+
+    const variables = this.config.cssVariables(this.currentTheme)
+    const root = document.documentElement
+
+    Object.entries(variables).forEach(([key, value]) => {
+      root.style.setProperty(key, value)
+    })
+  }
+
+  private notify(): void {
+    this.subscribers.forEach((callback) => callback(this.currentTheme))
+  }
+
+  private emitEvent(): void {
     if (typeof window === 'undefined') return
 
-    const savedPreference = localStorage.getItem('darkMode')
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const event = new CustomEvent<ThemeChangeEvent<T>>('volta:theme-change', {
+      detail: {
+        theme: this.currentTheme,
+        tenantId: this.currentTenantId,
+      },
+    })
+    window.dispatchEvent(event)
+  }
 
-    const shouldBeDark = savedPreference !== null ? savedPreference === 'true' : prefersDark
+  private deepMerge(target: T, source: Partial<T>): T {
+    const result = { ...target }
 
-    this.toggleDarkMode(shouldBeDark)
+    for (const key of Object.keys(source) as (keyof T)[]) {
+      const sourceValue = source[key]
+      const targetValue = target[key]
+
+      if (
+        sourceValue &&
+        typeof sourceValue === 'object' &&
+        !Array.isArray(sourceValue) &&
+        targetValue &&
+        typeof targetValue === 'object'
+      ) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        result[key] = this.deepMerge(targetValue as any, sourceValue as any) as T[keyof T]
+      } else if (sourceValue !== undefined) {
+        result[key] = sourceValue as T[keyof T]
+      }
+    }
+
+    return result
   }
 }
 
-// Singleton instance
-export const themeManager = new ThemeManager()
+// ===========================================================================
+// Factory Function
+// ===========================================================================
+
+/**
+ * Create a new ThemeManager instance
+ */
+export function createThemeManager<T extends object>(
+  config: ThemeManagerConfig<T>
+): ThemeManager<T> {
+  return new ThemeManager(config)
+}
+
+// Types are exported via interface declarations above

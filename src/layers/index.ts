@@ -1,4 +1,5 @@
 // Volta Layers
 // Application-level context layers
 
-export * from './ThemeManager'
+export { createThemeManager, ThemeManager } from './ThemeManager'
+export type { ThemeChangeEvent, ThemeManagerConfig } from './ThemeManager'
