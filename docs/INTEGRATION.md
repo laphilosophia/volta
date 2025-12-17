@@ -1,84 +1,121 @@
-# Integration Guide
+# Volta Integration Guide
 
-This guide covers how to extend Volta with custom components and integrate with external APIs.
+This guide explains how to integrate Volta into your LC/NC platform.
 
-## Adding Custom Components
+## Installation
 
-Volta allows you to register your own React components to be used in the Designer.
+```bash
+npm install volta @sthirajs/core
+```
 
-1.  **Create your Component**:
-    Create a standard React component in `src/components`.
+## Basic Setup
 
-    ```tsx
-    // src/components/MyCustomCard.tsx
-    import React from 'react'
+### 1. Configure API Client
 
-    export const MyCustomCard = ({ title, content }) => (
-      <div className="card">
-        <h2>{title}</h2>
-        <p>{content}</p>
-      </div>
-    )
-    ```
+Create a configuration file for your API endpoints:
 
-2.  **Register the Component**:
-    Add your component to the `componentRegistry` in `src/core/component-registry/index.ts`.
+```typescript
+// volta.config.ts
+import type { VoltaConfig } from 'volta'
 
-    ```ts
-    import { MyCustomCard } from '../../components/MyCustomCard'
-    import { componentRegistry } from './registry'
-
-    componentRegistry.register('custom-card', MyCustomCard, {
-      label: { en: 'Custom Card' },
-      icon: 'square', // Lucide icon name
-      props: {
-        title: { type: 'string', label: 'Title' },
-        content: { type: 'string', label: 'Content', inputType: 'textarea' },
+export const voltaConfig: VoltaConfig = {
+  services: {
+    main: {
+      baseUrl: process.env.API_URL || 'https://api.example.com',
+      auth: {
+        type: 'bearer',
+        tokenStorageKey: 'auth_token',
       },
-    })
-    ```
+    },
+  },
+  endpoints: {
+    getUsers: { service: 'main', path: '/users', method: 'GET' },
+    createUser: { service: 'main', path: '/users', method: 'POST' },
+    updateUser: { service: 'main', path: '/users/:id', method: 'PUT' },
+  },
+}
+```
 
-3.  **Use in Designer**:
-    Your component will now appear in the Designer palette!
+### 2. Initialize in Your App
 
-## Configuring APIs
+```typescript
+import { initApiClient, themeManager } from 'volta'
+import { voltaConfig } from './volta.config'
 
-Volta connects to your backend via the `src/voltaboard.config.ts` file.
+// Initialize API client
+initApiClient(voltaConfig)
 
-1.  **Define a Service**:
-    A service represents a base URL (e.g., your backend API).
+// Initialize theming
+themeManager.initDarkMode()
+```
 
-    ```ts
-    // voltaboard.config.ts
-    services: {
-      myApi: {
-        baseUrl: 'https://api.example.com/v1',
-        headers: { 'X-App-ID': 'volta-app' }
-      }
-    }
-    ```
+### 3. Register Components
 
-2.  **Define Endpoints**:
-    Endpoints map specific paths to services.
+```typescript
+import { componentRegistry } from 'volta'
 
-    ```ts
-    // voltaboard.config.ts
-    endpoints: {
-      getUsers: {
-        service: 'myApi',
-        path: '/users',
-        method: 'GET'
-      }
-    }
-    ```
+// Register your custom components
+componentRegistry.register(
+  {
+    id: 'my-component',
+    type: 'custom',
+    schema: { type: 'object', properties: {} },
+    defaultProps: {},
+    renderMode: 'view',
+    category: 'display',
+    label: { en: 'My Component', tr: 'Bileşenim' },
+  },
+  () => import('./components/MyComponent')
+)
+```
 
-3.  **Bind in Designer**:
-    Select a component in the Designer, go to the "Data Source" tab, and select "API Endpoint". Choose `getUsers` from the dropdown.
+## Using with React
+
+```typescript
+import { react } from 'volta'
+
+// React hooks and providers are available via react namespace
+// Full implementation coming with @sthirajs/fetch integration
+```
 
 ## Theming
 
-Volta uses CSS variables for theming. You can customize the look and feel by editing `src/index.css`.
+### Apply Tenant Theme
 
-- `--color-primary`: Main brand color.
-- `--color-background`: Page background color.
-- `--color-surface`: Card/Container background color.
+```typescript
+import { themeManager } from 'volta'
+
+// Load from CDN
+await themeManager.loadTheme('tenant-id')
+
+// Or apply directly
+themeManager.applyTheme({
+  tenantId: 'custom',
+  colors: {
+    primary: '#3B82F6',
+    secondary: '#8B5CF6',
+    accent: '#10B981',
+    neutral: '#6B7280',
+  },
+  logo: '/logo.svg',
+  favicon: '/favicon.ico',
+})
+```
+
+### Dark Mode
+
+```typescript
+// Toggle dark mode
+themeManager.toggleDarkMode()
+
+// Set specific mode
+themeManager.toggleDarkMode(true) // Enable
+themeManager.toggleDarkMode(false) // Disable
+
+// Initialize from user preference
+themeManager.initDarkMode()
+```
+
+## API Reference
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed API documentation.

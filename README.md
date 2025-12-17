@@ -1,95 +1,121 @@
 [![Volta](/docs/assets/banner.png)](https://github.com/laphilosophia/volta)
 
-# Volta - High-Performance Low-Code Platform
+# Volta - LC/NC Builder Toolkit
 
-Volta is a modern, high-performance low-code platform built with React, TypeScript, and Tailwind CSS. It empowers developers to create dynamic, metadata-driven applications with a powerful visual designer and a robust runtime engine.
+Volta is a **toolkit for developers who want to build low-code/no-code platforms**. It provides the essential building blocks: state management, data layers, component registry, and React adapters.
 
-## 🚀 Features
+> **Note**: Volta is not a visual builder itself—it's the foundation that powers them.
 
-- **Visual Designer**: Drag-and-drop interface for building pages and layouts with **Undo/Redo and History Log**.
-- **Metadata-Driven**: All components and pages are defined by JSON metadata, making them portable and versionable.
-- **Dynamic Runtime**: A lightweight rendering engine that interprets metadata to render the final application.
-- **Headless UI**: Core business logic is decoupled from presentation using headless components (`src/components/headless`).
-- **Data Integration**: Connect to any API, database, or static data source seamlessly.
-- **Component Registry**: Extensible architecture to add custom React components.
-- **Theming Engine**: Built-in support for dark mode, localization (i18n), and custom branding.
-- **Developer Tools**: Integrated **Storybook** for component development and **Vitest** for testing.
+## 🎯 What Volta Provides
 
-## 🛠️ Quick Start
+### For Developers Building LC/NC Platforms
 
-### Prerequisites
+| Category          | Features                                         |
+| ----------------- | ------------------------------------------------ |
+| **Core**          | Component Registry, API Client, Type Definitions |
+| **Layers**        | ThemeManager (white-label theming)               |
+| **Primitives**    | Headless builder component patterns              |
+| **React Adapter** | Hooks and providers for React                    |
 
-- Node.js 18+
-- npm or yarn
+### Design Philosophy
 
-### Installation
+- **Metadata-driven**: Components defined by JSON schemas
+- **Framework-agnostic core**: Pure TypeScript, React adapters optional
+- **Extensible**: Plugin-friendly architecture
+- **Type-safe**: Full TypeScript support
 
-1.  Clone the repository:
+## 📦 Installation
 
-    ```bash
-    git clone https://github.com/laphilosophia/volta.git
-    cd volta
-    ```
+```bash
+npm install volta @sthirajs/core
+```
 
-2.  Install dependencies:
+## 🚀 Quick Start
 
-    ```bash
-    npm install
-    # or
-    yarn install
-    ```
+```typescript
+import { componentRegistry, ApiClient, themeManager } from 'volta'
+import { react } from 'volta'
 
-3.  Start the development server:
+// Register a custom component
+componentRegistry.register({
+  id: 'my-input',
+  type: 'input',
+  schema: { type: 'object', properties: { label: { type: 'string' } } },
+  defaultProps: { label: 'Default' },
+  renderMode: 'edit',
+  category: 'input',
+})
 
-    ```bash
-    npm run dev
-    ```
+// Initialize API client
+const config = {
+  services: {
+    api: { baseUrl: 'https://api.example.com' },
+  },
+  endpoints: {
+    getUsers: { service: 'api', path: '/users', method: 'GET' },
+  },
+}
 
-4.  Open `http://localhost:5173` in your browser.
-
-### Other Commands
-
-- **Testing**: Run unit tests with `npm run test`.
-- **Storybook**: Start component playground with `npm run storybook`.
-- **Build**: Create a production build with `npm run build`.
+// Apply tenant theme
+themeManager.loadTheme('tenant-123')
+```
 
 ## 📂 Project Structure
 
-- `src/components`: React components including **Headless**, **Designer**, and **Predefined** UI elements.
-- `src/core`: Core logic (Rendering Engine, State Management, API Client).
-- `src/runtime`: The end-user runtime environment.
-- `src/designer`: The visual builder environment.
-- `src/voltaboard.config.ts`: Configuration for API endpoints and services.
+```
+volta/
+├── src/
+│   ├── core/           # Pure TypeScript (framework-agnostic)
+│   │   ├── api/        # ApiClient, errors, types
+│   │   ├── component-registry/
+│   │   └── types/
+│   │
+│   ├── layers/         # Application-level contexts
+│   │   └── ThemeManager.ts
+│   │
+│   ├── primitives/     # Headless builder components
+│   │
+│   ├── react/          # React adapter (optional)
+│   │   ├── hooks/
+│   │   └── providers/
+│   │
+│   └── index.ts
+```
+
+## 🔗 Peer Dependencies
+
+- `@sthirajs/core` - State management and data fetching
+- `react` (optional) - For React adapter
 
 ## 📚 Documentation
 
 - [Architecture Overview](docs/ARCHITECTURE.md)
 - [Integration Guide](docs/INTEGRATION.md)
-- [Troubleshooting](docs/TROUBLESHOOTING.md)
 
-## ⚡ CLI & Generators
-
-Volta comes with a built-in CLI to streamline development. Use the generator to create new components with the correct structure and boilerplate.
+## 🛠️ Development
 
 ```bash
-# Interactive mode
-npm run generate
+# Install dependencies
+npm install
 
-# Shortcut example
-npm run generate headless MyComponent
+# Build
+npm run build
+
+# Lint
+npm run lint
+
+# Test
+npm run test
 ```
-
-Available generators:
-
-- **Headless Component**: Creates a new component in `src/components/headless` with schema, types, and styles. (e.g. `npm run generate headless DataTable`)
-- **Predefined Component**: Creates a reusable UI component in `src/components/predefined`. (e.g. `npm run generate predefined Card`)
-- **Custom Hook**: Scaffolds a new React hook in `src/hooks`. (e.g. `npm run generate hook useAuth`)
-- **Designer Definition**: Creates a metadata definition for the visual designer.
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read our contribution guidelines before submitting a pull request.
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md).
 
 ## 📄 License
 
 MIT License.
+
+---
+
+**Part of the Sthira ecosystem** - [github.com/laphilosophia](https://github.com/laphilosophia)
