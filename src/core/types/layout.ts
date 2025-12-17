@@ -243,5 +243,5 @@ export function getLayoutTemplate(id: string): LayoutTemplate | undefined {
  * Create a deep copy of a layout template for page use
  */
 export function cloneLayoutTemplate(template: LayoutTemplate): LayoutTemplate {
-  return JSON.parse(JSON.stringify(template))
+  return structuredClone(template)
 }

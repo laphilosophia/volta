@@ -1,3 +1,4 @@
+import { COOKIE_NAMES } from '../constants'
 import { ApiError, ConfigurationError, NetworkError } from './errors'
 import type { VoltaConfig } from './types'
 
@@ -78,7 +79,7 @@ export class ApiClient {
     // CSRF Protection: Add X-XSRF-TOKEN if available in cookies
     const xsrfToken = document.cookie
       .split('; ')
-      .find((row) => row.startsWith('XSRF-TOKEN='))
+      .find((row) => row.startsWith(`${COOKIE_NAMES.XSRF_TOKEN}=`))
       ?.split('=')[1]
 
     if (xsrfToken) {

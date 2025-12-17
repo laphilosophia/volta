@@ -2,6 +2,8 @@
 // ThemeManager - Generic Theme System (Pure TypeScript)
 // ============================================================================
 
+import { EVENT_NAMES, STORAGE_KEYS } from '../core/constants'
+
 /**
  * Configuration for creating a ThemeManager
  */
@@ -165,7 +167,7 @@ export class ThemeManager<T extends object> {
     document.documentElement.classList.toggle('dark', isDark)
 
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('volta-dark-mode', String(isDark))
+      localStorage.setItem(STORAGE_KEYS.DARK_MODE, String(isDark))
     }
 
     return isDark
@@ -177,7 +179,7 @@ export class ThemeManager<T extends object> {
   initDarkMode(): boolean {
     if (typeof window === 'undefined') return false
 
-    const saved = localStorage.getItem('volta-dark-mode')
+    const saved = localStorage.getItem(STORAGE_KEYS.DARK_MODE)
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
     const shouldBeDark = saved !== null ? saved === 'true' : prefersDark
 
@@ -207,7 +209,7 @@ export class ThemeManager<T extends object> {
   private emitEvent(): void {
     if (typeof window === 'undefined') return
 
-    const event = new CustomEvent<ThemeChangeEvent<T>>('volta:theme-change', {
+    const event = new CustomEvent<ThemeChangeEvent<T>>(EVENT_NAMES.THEME_CHANGE, {
       detail: {
         theme: this.currentTheme,
         tenantId: this.currentTenantId,
