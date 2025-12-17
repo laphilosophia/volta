@@ -29,3 +29,6 @@ roadmap.md
 coverage
 playwright-report
 test-results
+
+# npm auth
+.npmrc
