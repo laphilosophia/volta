@@ -13,12 +13,12 @@ Volta is a **toolkit for developers who want to build low-code/no-code platforms
 
 ## 🎯 What Volta Provides
 
-| Category          | Features                                                                 |
-| ----------------- | ------------------------------------------------------------------------ |
-| **Core**          | Component Registry, API Client, Type Definitions                         |
-| **Layers**        | ThemeManager, DataLayer, StateLayer                                      |
-| **Primitives**    | Headless builder component patterns                                      |
-| **React Adapter** | `useVoltaRegistry`, `useVoltaQuery`, `useVoltaMutation`, `useVoltaStore` |
+| Category          | Features                                                                  |
+| ----------------- | ------------------------------------------------------------------------- |
+| **Core**          | Component Registry, API Client, Type Definitions                          |
+| **Layers**        | ThemeManager, DataLayer, StateLayer                                       |
+| **Primitives**    | `query()`, `store()`, `register()`, Signal-based derived stores           |
+| **React Adapter** | `useVoltaComponent`, `useVoltaRegistry`, `useVoltaQuery`, `useVoltaStore` |
 
 ## 📦 Installation
 
@@ -116,7 +116,7 @@ src/
 npm install    # Install dependencies
 npm run build  # Build
 npm run lint   # Lint
-npm run test   # Test (81 tests)
+npm run test   # Test (91 tests)
 ```
 
 ## 🤝 Contributing

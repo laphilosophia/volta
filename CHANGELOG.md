@@ -5,6 +5,67 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-12-19
+
+### 🎯 True Builder Framework Milestone
+
+This release transforms Volta into a vanilla-first, framework-agnostic builder framework with signal-based reactivity.
+
+### Added
+
+#### Component Registration System
+
+- **`register()`** - Vanilla component registration with override protection
+- **`query()`** - Data binding factory for lazy data fetching
+- **`store()`** - State binding factory for scoped stores
+- **`getComponent()`**, **`listComponents()`** - Registry access
+
+```typescript
+const userData = query({ endpoint: '/users/:userId', params: ['userId'] })
+const userState = store({ initial: { tab: 'info' } })
+
+register('user-card', {
+  type: 'data-display',
+  component: () => import('./UserCard'),
+  data: userData,
+  state: userState,
+  theme: ['colors.primary'],
+})
+```
+
+#### Binding Resolution
+
+- **`resolveDataBindings()`** - Fetch data with AbortController support
+- **`resolveStateBindings()`** - Create instance-scoped stores
+- **`resolveThemeBindings()`** - Subscribe to theme tokens automatically
+
+#### Signal-Based Derived Stores
+
+- **`createDerivedStore()`** - Uses `@sthirajs/core` computed signals
+- **`createLegacyDerivedStore()`** - For getState/subscribe pattern
+
+```typescript
+import { signal } from '@sthirajs/core'
+
+const count = signal(5)
+const derived = createDerivedStore([count], ([c]) => c * 2)
+```
+
+#### React Adapter
+
+- **`useVoltaComponent()`** - Auto-resolve data, state, theme on mount
+
+### Changed
+
+- Layers renamed to lowercase (`DataLayer` → `data-layer`)
+- Updated `@sthirajs/core` to 0.3.2 (synchronous signal invalidation)
+
+### Tests
+
+- 91 tests passing
+
+---
+
 ## [0.4.0] - 2025-12-18
 
 ### 🎯 Unified Registry Milestone
