@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createThemeManager, ThemeManager } from './ThemeManager'
+import { createThemeManager, ThemeManager } from './theme-manager'
 
 interface TestTheme {
   colors: {

@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { DataLayer, DataLayerError, getDataLayer, initDataLayer, resetDataLayer } from './DataLayer'
+import {
+  DataLayer,
+  DataLayerError,
+  getDataLayer,
+  initDataLayer,
+  resetDataLayer,
+} from './data-layer'
 
 // Mock @sthirajs/fetch
 vi.mock('@sthirajs/fetch', () => ({

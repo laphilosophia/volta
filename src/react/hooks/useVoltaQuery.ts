@@ -1,35 +1,57 @@
 // ============================================================================
 // useVoltaQuery - Data Fetching Hook
+// Wraps the vanilla query() API for React
 // ============================================================================
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type {
-  DataLayerError,
-  QueryOptions,
-  QueryState,
-  RequestParams,
-} from '../../layers/DataLayer'
-import { getDataLayer } from '../../layers/DataLayer'
+import { query, type QueryOptions as VoltaQueryOptions } from '../../core/volta'
 
-export interface UseVoltaQueryOptions extends QueryOptions {
-  /** Request parameters */
-  params?: RequestParams
+/**
+ * Query state returned by useVoltaQuery
+ */
+export interface QueryState<T> {
+  data: T | undefined
+  isLoading: boolean
+  isError: boolean
+  error: Error | null
+  isStale: boolean
 }
 
+/**
+ * Options for useVoltaQuery hook
+ */
+export interface UseVoltaQueryOptions {
+  /** Path parameters for URL substitution */
+  path?: Record<string, string | number>
+  /** Override retry config */
+  retry?: VoltaQueryOptions['retry']
+  /** Override timeout */
+  timeout?: number
+  /** Enable/disable the query (default: true) */
+  enabled?: boolean
+  /** Refetch when window gains focus */
+  refetchOnFocus?: boolean
+  /** Refetch when network reconnects (default: true) */
+  refetchOnReconnect?: boolean
+}
+
+/**
+ * Result returned by useVoltaQuery
+ */
 export interface UseVoltaQueryResult<T> extends QueryState<T> {
   /** Refetch the data */
   refetch: () => Promise<void>
 }
 
 /**
- * Hook for data fetching with caching and automatic refetching.
+ * Hook for data fetching using the vanilla Volta API.
  *
  * @example
  * ```tsx
  * function UserProfile({ userId }: { userId: string }) {
  *   const { data, isLoading, error } = useVoltaQuery<User>(
  *     '/users/:id',
- *     { params: { path: { id: userId } } }
+ *     { path: { id: userId } }
  *   )
  *
  *   if (isLoading) return <div>Loading...</div>
@@ -42,7 +64,14 @@ export function useVoltaQuery<T>(
   endpoint: string,
   options: UseVoltaQueryOptions = {}
 ): UseVoltaQueryResult<T> {
-  const { enabled = true, params, refetchOnFocus = false, refetchOnReconnect = true } = options
+  const {
+    path,
+    retry,
+    timeout,
+    enabled = true,
+    refetchOnFocus = false,
+    refetchOnReconnect = true,
+  } = options
 
   const [state, setState] = useState<QueryState<T>>({
     data: undefined,
@@ -55,7 +84,8 @@ export function useVoltaQuery<T>(
   const mountedRef = useRef(true)
   const abortControllerRef = useRef<AbortController | null>(null)
 
-  const paramsKey = JSON.stringify(params)
+  // Create stable key from options for dependency tracking
+  const optionsKey = JSON.stringify({ path, retry, timeout })
 
   const fetchData = useCallback(async () => {
     if (!enabled) return
@@ -67,8 +97,13 @@ export function useVoltaQuery<T>(
     setState((prev) => ({ ...prev, isLoading: true, isError: false, error: null }))
 
     try {
-      const dataLayer = getDataLayer()
-      const data = await dataLayer.get<T>(endpoint, params)
+      // Use vanilla query() API
+      const data = await query<T>(endpoint, {
+        path,
+        retry,
+        timeout,
+        signal: abortControllerRef.current.signal,
+      })
 
       if (mountedRef.current) {
         setState({
@@ -80,17 +115,22 @@ export function useVoltaQuery<T>(
         })
       }
     } catch (error) {
+      // Don't update state if aborted
+      if ((error as Error).name === 'AbortError') {
+        return
+      }
+
       if (mountedRef.current) {
         setState((prev) => ({
           ...prev,
           isLoading: false,
           isError: true,
-          error: error as DataLayerError,
+          error: error as Error,
         }))
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [endpoint, enabled, paramsKey])
+  }, [endpoint, enabled, optionsKey])
 
   // Initial fetch and refetch on dependency changes
   useEffect(() => {

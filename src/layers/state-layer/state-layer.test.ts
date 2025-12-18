@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { StateLayer, getStateLayer, initStateLayer, resetStateLayer } from './StateLayer'
+import { StateLayer, getStateLayer, initStateLayer, resetStateLayer } from './state-layer'
 
 // Mock @sthirajs packages
 vi.mock('@sthirajs/core', () => ({

@@ -32,4 +32,5 @@ test-results
 
 # npm auth
 .npmrc
+.agent
 signals-design.md

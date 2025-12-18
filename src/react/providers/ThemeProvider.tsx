@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import type { ThemeManager } from '../../layers/ThemeManager'
+import type { ThemeManager } from '../../layers/theme-manager'
 import { ThemeContext, type ThemeContextValue } from './ThemeContext'
 
 interface ThemeProviderProps<T extends object> {
@@ -25,7 +25,7 @@ export function ThemeProvider<T extends object>({
 
   // Subscribe to theme changes
   useEffect(() => {
-    const unsubscribe = manager.subscribe((newTheme) => {
+    const unsubscribe = manager.subscribe((newTheme: T) => {
       setThemeState(newTheme)
       setTenantId(manager.getTenantId())
     })

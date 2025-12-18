@@ -93,7 +93,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
-    "@sthirajs/core": "^0.2.0",
+    "@sthirajs/core": "^0.3.1",
     "@sthirajs/cross-tab": "^1.0.0",
     "@sthirajs/devtools": "^1.0.0",
     "@sthirajs/fetch": "^1.0.0",

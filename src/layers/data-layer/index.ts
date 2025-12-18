@@ -2,7 +2,7 @@
 // Data Layer - Volta
 // ============================================================================
 
-export { DataLayer, getDataLayer, initDataLayer, resetDataLayer } from './DataLayer'
+export { DataLayer, getDataLayer, initDataLayer, resetDataLayer } from './data-layer'
 export { DataLayerError } from './types'
 export type {
   CacheConfig,

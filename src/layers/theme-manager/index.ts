@@ -2,5 +2,5 @@
 // Theme Layer - Volta
 // ============================================================================
 
-export { ThemeManager, createThemeManager } from './ThemeManager'
-export type { ThemeChangeEvent, ThemeManagerConfig } from './ThemeManager'
+export { ThemeManager, createThemeManager } from './theme-manager'
+export type { ThemeChangeEvent, ThemeManagerConfig } from './theme-manager'

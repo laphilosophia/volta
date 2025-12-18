@@ -4,32 +4,26 @@
 
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import * as dataLayerModule from '../../layers/DataLayer'
+import * as voltaModule from '../../core/volta'
 import { createTypedQueryKey, useVoltaRegistry } from './useVoltaRegistry'
 
-// Mock DataLayer
-vi.mock('../../layers/DataLayer', async (importOriginal) => {
-  const actual = await importOriginal<typeof dataLayerModule>()
+// Mock Volta API
+vi.mock('../../core/volta', async (importOriginal) => {
+  const actual = await importOriginal<typeof voltaModule>()
   return {
     ...actual,
-    getDataLayer: vi.fn(),
+    query: vi.fn(),
+    mutate: vi.fn(),
   }
 })
 
 describe('useVoltaRegistry', () => {
-  const mockGet = vi.fn()
-  const mockDataLayer = {
-    get: mockGet,
-    post: vi.fn(),
-    put: vi.fn(),
-    delete: vi.fn(),
-  }
+  const mockQuery = vi.mocked(voltaModule.query)
+  const mockMutate = vi.mocked(voltaModule.mutate)
 
   beforeEach(() => {
-    vi.mocked(dataLayerModule.getDataLayer).mockReturnValue(
-      mockDataLayer as unknown as dataLayerModule.DataLayer
-    )
-    mockGet.mockReset()
+    mockQuery.mockReset()
+    mockMutate.mockReset()
   })
 
   afterEach(() => {
@@ -56,7 +50,7 @@ describe('useVoltaRegistry', () => {
     it('should fetch data on mount when enabled', async () => {
       const key = createTypedQueryKey('test-fetch')
       const mockData = { id: 1, name: 'Test User' }
-      mockGet.mockResolvedValueOnce(mockData)
+      mockQuery.mockResolvedValueOnce(mockData)
 
       const { result } = renderHook(() =>
         useVoltaRegistry<{ id: number; name: string }>({
@@ -82,7 +76,7 @@ describe('useVoltaRegistry', () => {
     it('should handle fetch errors', async () => {
       const key = createTypedQueryKey('test-error')
       const mockError = new Error('Network error')
-      mockGet.mockRejectedValueOnce(mockError)
+      mockQuery.mockRejectedValueOnce(mockError)
 
       const { result } = renderHook(() =>
         useVoltaRegistry({
@@ -106,7 +100,7 @@ describe('useVoltaRegistry', () => {
       const key = createTypedQueryKey('test-refetch')
       const mockData1 = { id: 1 }
       const mockData2 = { id: 2 }
-      mockGet.mockResolvedValueOnce(mockData1).mockResolvedValueOnce(mockData2)
+      mockQuery.mockResolvedValueOnce(mockData1).mockResolvedValueOnce(mockData2)
 
       const { result } = renderHook(() =>
         useVoltaRegistry<{ id: number }>({
@@ -125,14 +119,14 @@ describe('useVoltaRegistry', () => {
       })
 
       expect(result.current.data).toEqual(mockData2)
-      expect(mockGet).toHaveBeenCalledTimes(2)
+      expect(mockQuery).toHaveBeenCalledTimes(2)
     })
   })
 
   describe('setData', () => {
     it('should update data directly with setData', async () => {
       const key = createTypedQueryKey('test-setdata')
-      mockGet.mockResolvedValueOnce({ count: 0 })
+      mockQuery.mockResolvedValueOnce({ count: 0 })
 
       const { result } = renderHook(() =>
         useVoltaRegistry<{ count: number }>({
@@ -156,7 +150,7 @@ describe('useVoltaRegistry', () => {
 
     it('should support updater function in setData', async () => {
       const key = createTypedQueryKey('test-setdata-updater')
-      mockGet.mockResolvedValueOnce({ count: 10 })
+      mockQuery.mockResolvedValueOnce({ count: 10 })
 
       const { result } = renderHook(() =>
         useVoltaRegistry<{ count: number }>({
@@ -190,7 +184,7 @@ describe('useVoltaRegistry', () => {
         })
       )
 
-      expect(mockGet).not.toHaveBeenCalled()
+      expect(mockQuery).not.toHaveBeenCalled()
     })
   })
 
@@ -198,7 +192,7 @@ describe('useVoltaRegistry', () => {
     it('should use initialData before fetch completes', () => {
       const key = createTypedQueryKey('test-initial')
       const initialData = { name: 'Initial' }
-      mockGet.mockImplementation(() => new Promise(() => {})) // Never resolves
+      mockQuery.mockImplementation(() => new Promise(() => {})) // Never resolves
 
       const { result } = renderHook(() =>
         useVoltaRegistry<{ name: string }>({
@@ -244,18 +238,12 @@ describe('useVoltaRegistry', () => {
       const key = createTypedQueryKey('test-optimistic')
       const initialData = { id: 1, name: 'Initial' }
       const mutationData = { name: 'Updated' }
-      const mockPost = vi.fn().mockResolvedValueOnce(initialData)
-      const mockPut = vi.fn().mockResolvedValueOnce({ id: 1, name: 'Updated' })
+      const updatedData = { id: 1, name: 'Updated' }
 
-      vi.mocked(dataLayerModule.getDataLayer).mockReturnValue({
-        get: mockPost,
-        post: mockPut,
-        put: mockPut,
-        patch: mockPut,
-        delete: vi.fn(),
-      } as unknown as dataLayerModule.DataLayer)
-
-      mockPost.mockResolvedValueOnce(initialData)
+      // Mock query for initial data fetch
+      mockQuery.mockResolvedValueOnce(initialData)
+      // Mock mutate for the mutation
+      mockMutate.mockResolvedValueOnce(updatedData)
 
       const { result } = renderHook(() =>
         useVoltaRegistry<{ id: number; name: string }>({
@@ -280,16 +268,11 @@ describe('useVoltaRegistry', () => {
     it('should rollback on mutation error when optimistic', async () => {
       const key = createTypedQueryKey('test-rollback')
       const initialData = { id: 1, name: 'Original' }
-      const mockGet = vi.fn().mockResolvedValueOnce(initialData)
-      const mockPut = vi.fn().mockRejectedValueOnce(new Error('Server error'))
 
-      vi.mocked(dataLayerModule.getDataLayer).mockReturnValue({
-        get: mockGet,
-        put: mockPut,
-        post: vi.fn(),
-        patch: vi.fn(),
-        delete: vi.fn(),
-      } as unknown as dataLayerModule.DataLayer)
+      // Mock query for initial data fetch
+      mockQuery.mockResolvedValueOnce(initialData)
+      // Mock mutate to fail
+      mockMutate.mockRejectedValueOnce(new Error('Server error'))
 
       const { result } = renderHook(() =>
         useVoltaRegistry<{ id: number; name: string }>({

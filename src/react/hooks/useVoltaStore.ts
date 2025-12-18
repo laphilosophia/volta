@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { useCallback, useMemo, useSyncExternalStore } from 'react'
-import type { SthiraStore } from '../../layers/StateLayer'
+import type { SthiraStore } from '../../layers/state-layer'
 
 /**
  * Hook for consuming Sthira stores with optional selector support.

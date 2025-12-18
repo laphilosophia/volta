@@ -1,28 +1,52 @@
 // ============================================================================
 // useVoltaMutation - Data Mutation Hook
+// Wraps the vanilla mutate() API for React
 // ============================================================================
 
 import { useCallback, useRef, useState } from 'react'
-import type {
-  DataLayerError,
-  MutationOptions,
-  MutationState,
-  RequestParams,
-} from '../../layers/DataLayer'
-import { getDataLayer } from '../../layers/DataLayer'
+import { mutate, type MutateOptions } from '../../core/volta'
 
-export interface UseVoltaMutationOptions<T, V> extends MutationOptions<T, V> {
-  /** HTTP method (default: 'POST') */
-  method?: 'POST' | 'PUT' | 'PATCH' | 'DELETE'
-  /** Request parameters */
-  params?: RequestParams
-  /** Endpoints to invalidate on success */
-  invalidates?: string[]
+/**
+ * Mutation state returned by useVoltaMutation
+ */
+export interface MutationState<T> {
+  data: T | undefined
+  isLoading: boolean
+  isError: boolean
+  error: Error | null
+  isSuccess: boolean
 }
 
+/**
+ * Options for useVoltaMutation hook
+ */
+export interface UseVoltaMutationOptions<T, V> {
+  /** HTTP method (default: 'POST') */
+  method?: 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+  /** Path parameters for URL substitution */
+  path?: Record<string, string | number>
+  /** Override retry config */
+  retry?: MutateOptions['retry']
+  /** Override timeout */
+  timeout?: number
+  /** Endpoints to invalidate on success */
+  invalidates?: string[]
+  /** Called on successful mutation */
+  onSuccess?: (data: T, variables: V) => void | Promise<void>
+  /** Called on mutation error */
+  onError?: (error: Error, variables: V) => void
+  /** Called when mutation settles (success or error) */
+  onSettled?: (data: T | undefined, error: Error | null, variables: V) => void
+  /** Transform variables to get optimistic data */
+  optimisticUpdate?: (variables: V) => T
+}
+
+/**
+ * Result returned by useVoltaMutation
+ */
 export interface UseVoltaMutationResult<T, V> extends MutationState<T> {
-  /** Execute the mutation */
-  mutate: (variables: V) => Promise<T>
+  /** Execute the mutation (fire-and-forget) */
+  mutate: (variables: V) => void
   /** Execute the mutation and return a promise */
   mutateAsync: (variables: V) => Promise<T>
   /** Reset mutation state */
@@ -30,7 +54,7 @@ export interface UseVoltaMutationResult<T, V> extends MutationState<T> {
 }
 
 /**
- * Hook for data mutations with optimistic updates and cache invalidation.
+ * Hook for data mutations using the vanilla Volta API.
  *
  * @example
  * ```tsx
@@ -57,12 +81,14 @@ export function useVoltaMutation<T, V = unknown>(
 ): UseVoltaMutationResult<T, V> {
   const {
     method = 'POST',
-    params,
+    path,
+    retry,
+    timeout,
+    invalidates: invalidatePatterns,
     onSuccess,
     onError,
     onSettled,
     optimisticUpdate,
-    invalidates,
   } = options
 
   const [state, setState] = useState<MutationState<T>>({
@@ -102,28 +128,14 @@ export function useVoltaMutation<T, V = unknown>(
       }
 
       try {
-        const dataLayer = getDataLayer()
-        let data: T
-
-        switch (method) {
-          case 'POST':
-            data = await dataLayer.post<T>(endpoint, variables, params)
-            break
-          case 'PUT':
-            data = await dataLayer.put<T>(endpoint, variables, params)
-            break
-          case 'PATCH':
-            data = await dataLayer.patch<T>(endpoint, variables, params)
-            break
-          case 'DELETE':
-            data = await dataLayer.delete<T>(endpoint, params)
-            break
-        }
-
-        // Invalidate caches
-        if (invalidates?.length) {
-          invalidates.forEach((pattern) => dataLayer.invalidateCache(pattern))
-        }
+        // Use vanilla mutate() API
+        const data = await mutate<T>(endpoint, variables, {
+          method,
+          path,
+          retry,
+          timeout,
+          invalidates: invalidatePatterns,
+        })
 
         if (mountedRef.current) {
           setState({
@@ -140,7 +152,7 @@ export function useVoltaMutation<T, V = unknown>(
 
         return data
       } catch (error) {
-        const err = error as DataLayerError
+        const err = error as Error
 
         if (mountedRef.current) {
           setState({
@@ -158,21 +170,32 @@ export function useVoltaMutation<T, V = unknown>(
         throw err
       }
     },
-    [endpoint, method, params, onSuccess, onError, onSettled, optimisticUpdate, invalidates]
+    [
+      endpoint,
+      method,
+      path,
+      retry,
+      timeout,
+      invalidatePatterns,
+      onSuccess,
+      onError,
+      onSettled,
+      optimisticUpdate,
+    ]
   )
 
-  const mutate = useCallback(
+  const mutateSync = useCallback(
     (variables: V) => {
       mutateAsync(variables).catch(() => {
         // Error already handled in state
       })
     },
     [mutateAsync]
-  ) as (variables: V) => Promise<T>
+  )
 
   return {
     ...state,
-    mutate,
+    mutate: mutateSync,
     mutateAsync,
     reset,
   }

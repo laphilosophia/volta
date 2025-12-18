@@ -15,3 +15,7 @@ export { useVoltaStore } from './useVoltaStore'
 // Unified Registry Hook (v0.4.0)
 export { createTypedQueryKey, useVoltaRegistry } from './useVoltaRegistry'
 export type { RegistryConfig, RegistryResult } from './useVoltaRegistry'
+
+// Component Auto-Wiring Hook (v0.5.0)
+export { useVoltaComponent } from './useVoltaComponent'
+export type { UseVoltaComponentOptions, VoltaComponentResult } from './useVoltaComponent'

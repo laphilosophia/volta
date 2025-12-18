@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-12-18
+
+### 🎯 Unified Registry Milestone
+
+This release introduces the unified `useVoltaRegistry` hook with optimistic mutations and improved DX.
+
+### Added
+
+#### useVoltaRegistry Hook
+
+- **Unified API** - Single hook for query + mutation operations
+- **Auto-generated keys** - Symbol keys auto-generated from endpoint (no manual key required)
+- **Optimistic updates** - Enabled by default with automatic rollback on error
+- **FSM status** - Query states: `idle`, `pending`, `success`, `error`
+- **Generic request method** - `request()` supports all HTTP methods
+
+```typescript
+const { data, loading, mutate, remove, request } = useVoltaRegistry<User>({
+  endpoint: '/api/users',
+})
+```
+
+#### DataLayer Enhancements
+
+- **Retry config** - Global and per-endpoint retry settings
+- **Timeout support** - Configurable request timeouts
+- **AbortController** - Request cancellation with AbortSignal
+- **cancelOnNewRequest** - Auto-cancel previous GET requests
+
+### Changed
+
+- `key` is now optional in `useVoltaRegistry` - auto-generated from endpoint
+- Added `request()` method for generic HTTP operations
+
+### Tests
+
+- Added 13 new tests for useVoltaRegistry
+- Total test count: 81
+
+---
+
 ## [0.3.0] - 2025-12-17
 
 ### 🎯 Data Layer Milestone
@@ -110,13 +151,8 @@ This is the first public alpha release of Volta - a metadata-driven low-code pla
 - Code coverage infrastructure not yet configured
 - Documentation site not yet live
 
-### What's Next (Roadmap to Stable)
-
-- [ ] Accessibility (A11y) compliance
-- [ ] Documentation site (VitePress)
-- [ ] Code coverage 70%+
-- [ ] React 19 Strict Mode compliance
-
 ---
 
+[0.4.0]: https://github.com/laphilosophia/volta/releases/tag/v0.4.0
+[0.3.0]: https://github.com/laphilosophia/volta/releases/tag/v0.3.0
 [0.1.0-alpha.1]: https://github.com/laphilosophia/volta/releases/tag/v0.1.0-alpha.1

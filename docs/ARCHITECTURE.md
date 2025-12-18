@@ -114,12 +114,43 @@ themeManager.toggleDarkMode()
 
 ## React Hooks
 
+### useVoltaRegistry (v0.4.0+)
+
+Unified hook for query and mutation operations with optimistic updates.
+
+```tsx
+import { react } from '@voltakit/volta'
+const { useVoltaRegistry } = react
+
+function UserProfile({ userId }: { userId: string }) {
+  const { data, loading, error, mutate, remove, refetch } = useVoltaRegistry<User>({
+    endpoint: `/users/${userId}`,
+    // key is auto-generated from endpoint
+    // optimistic updates enabled by default
+  })
+
+  const handleUpdate = async () => {
+    await mutate({ name: 'Updated Name' }) // Optimistic + rollback on error
+  }
+
+  if (loading) return <div>Loading...</div>
+  if (error) return <div>Error: {error.message}</div>
+
+  return (
+    <div>
+      <h1>{data?.name}</h1>
+      <button onClick={handleUpdate}>Update</button>
+      <button onClick={remove}>Delete</button>
+    </div>
+  )
+}
+```
+
 ### useVoltaQuery
 
 Data fetching with caching and automatic refetch.
 
 ```tsx
-import { react } from '@voltakit/volta'
 const { useVoltaQuery } = react
 
 function UserList() {

@@ -1,12 +1,11 @@
 // ============================================================================
 // useVoltaRegistry - Unified Registry Hook
+// Wraps the vanilla Volta API for React component-data binding
 // ============================================================================
 //
 // The core primitive for component-data binding in Volta.
 // Components register their data requirements, and the framework handles:
-// - Auto-wiring to DataLayer (fetch)
-// - Auto-wiring to StateLayer (storage)
-// - Auto-wiring to ThemeManager (styling)
+// - Auto-wiring to Volta API (query/mutate)
 // - FSM status management (idle → pending → success/error)
 // - Lazy evaluation (fetch on mount)
 // - Cleanup on unmount
@@ -14,14 +13,26 @@
 // ============================================================================
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import {
-  createQueryKey,
-  getDataLayer,
-  keyToString,
-  type QueryKey,
-  type QueryStatus,
-  type RetryConfig,
-} from '../../layers/DataLayer'
+import { query, mutate as voltaMutate, type QueryOptions } from '../../core/volta'
+
+/**
+ * Configuration for useVoltaRegistry hook
+ */
+/** Query status FSM states */
+export type QueryStatus = 'idle' | 'pending' | 'success' | 'error'
+
+/** Query key type */
+export type QueryKey = symbol
+
+/** Create a query key from a string */
+export function createQueryKey(name: string): QueryKey {
+  return Symbol.for(`volta:query:${name}`)
+}
+
+/** Convert query key to string for Map storage */
+export function keyToString(key: QueryKey): string {
+  return key.toString()
+}
 
 /**
  * Configuration for useVoltaRegistry hook
@@ -32,7 +43,7 @@ export interface RegistryConfig<T = unknown> {
   /** API endpoint to fetch data from */
   endpoint?: string
   /** Override retry config for this query */
-  retry?: RetryConfig | false
+  retry?: QueryOptions['retry']
   /** Override timeout for this query (in ms) */
   timeout?: number
   /** Enable/disable the query */
@@ -212,8 +223,8 @@ export function useVoltaRegistry<T>(config: RegistryConfig<T>): RegistryResult<T
     setQueryStore<T>(keyStr, { status: 'pending', error: null })
 
     try {
-      const dataLayer = getDataLayer()
-      const data = await dataLayer.get<T>(endpoint, {
+      // Use vanilla query() API
+      const data = await query<T>(endpoint, {
         retry,
         timeout,
         signal: abortControllerRef.current.signal,
@@ -314,20 +325,12 @@ export function useVoltaRegistry<T>(config: RegistryConfig<T>): RegistryResult<T
       }
 
       try {
-        const dataLayer = getDataLayer()
-        let result: T
-
-        switch (method) {
-          case 'POST':
-            result = await dataLayer.post<T>(mutateEndpoint, mutationData, { retry, timeout })
-            break
-          case 'PUT':
-            result = await dataLayer.put<T>(mutateEndpoint, mutationData, { retry, timeout })
-            break
-          case 'PATCH':
-            result = await dataLayer.patch<T>(mutateEndpoint, mutationData, { retry, timeout })
-            break
-        }
+        // Use vanilla voltaMutate() API
+        const result = await voltaMutate<T>(mutateEndpoint, mutationData, {
+          method,
+          retry,
+          timeout,
+        })
 
         if (mountedRef.current) {
           setQueryStore<T>(keyStr, {
@@ -379,8 +382,12 @@ export function useVoltaRegistry<T>(config: RegistryConfig<T>): RegistryResult<T
     }
 
     try {
-      const dataLayer = getDataLayer()
-      await dataLayer.delete(removeEndpoint, { retry, timeout })
+      // Use vanilla voltaMutate() API with DELETE method
+      await voltaMutate(removeEndpoint, undefined, {
+        method: 'DELETE',
+        retry,
+        timeout,
+      })
 
       if (mountedRef.current) {
         setQueryStore<T>(keyStr, {
@@ -412,30 +419,18 @@ export function useVoltaRegistry<T>(config: RegistryConfig<T>): RegistryResult<T
       setIsMutating(true)
 
       try {
-        const dataLayer = getDataLayer()
         let result: R
 
-        // Map method to DataLayer method
+        // Use vanilla API based on method
         const upperMethod = method.toUpperCase()
-        switch (upperMethod) {
-          case 'GET':
-            result = await dataLayer.get<R>(requestEndpoint, { retry, timeout })
-            break
-          case 'POST':
-            result = await dataLayer.post<R>(requestEndpoint, data, { retry, timeout })
-            break
-          case 'PUT':
-            result = await dataLayer.put<R>(requestEndpoint, data, { retry, timeout })
-            break
-          case 'PATCH':
-            result = await dataLayer.patch<R>(requestEndpoint, data, { retry, timeout })
-            break
-          case 'DELETE':
-            result = await dataLayer.delete<R>(requestEndpoint, { retry, timeout })
-            break
-          default:
-            // For other methods, use POST as fallback
-            result = await dataLayer.post<R>(requestEndpoint, data, { retry, timeout })
+        if (upperMethod === 'GET') {
+          result = await query<R>(requestEndpoint, { retry, timeout })
+        } else {
+          result = await voltaMutate<R>(requestEndpoint, data, {
+            method: upperMethod as 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+            retry,
+            timeout,
+          })
         }
 
         return result
