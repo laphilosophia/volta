@@ -2,7 +2,7 @@
 
 # Volta - LC/NC Builder Toolkit
 
-Volta is a **toolkit for developers who want to build low-code/no-code platforms**. It provides the essential building blocks: state management, data layers, component registry, and React adapters.
+Volta is a **toolkit for developers who want to build low-code/no-code platforms**. It provides the essential building blocks: component registry, data/state bindings, and React adapters.
 
 > **Note**: Volta is not a visual builder itself—it's the foundation that powers them.
 
@@ -15,9 +15,9 @@ Volta is a **toolkit for developers who want to build low-code/no-code platforms
 
 | Category          | Features                                                                  |
 | ----------------- | ------------------------------------------------------------------------- |
-| **Core**          | Component Registry, API Client, Type Definitions                          |
+| **Core**          | `register()`, `query()`, `store()`, Component Registry                    |
 | **Layers**        | ThemeManager, DataLayer, StateLayer                                       |
-| **Primitives**    | `query()`, `store()`, `register()`, Signal-based derived stores           |
+| **Signals**       | `createDerivedStore()` with Sthira computed signals                       |
 | **React Adapter** | `useVoltaComponent`, `useVoltaRegistry`, `useVoltaQuery`, `useVoltaStore` |
 
 ## 📦 Installation
@@ -26,73 +26,72 @@ Volta is a **toolkit for developers who want to build low-code/no-code platforms
 npm install @voltakit/volta
 ```
 
-> @voltakit/volta uses @sthirajs/\* under the hood. For a detailed explanation, see [Sthira](https://github.com/laphilosophia/sthira).
-
-> All `@sthirajs/*` packages are bundled—no extra dependencies needed!
+> Built on `@sthirajs/*` - all dependencies bundled!
 
 ## 🚀 Quick Start
 
-### Data Fetching
-
-```typescript
-import { initDataLayer, getDataLayer } from '@voltakit/volta'
-
-// Initialize
-initDataLayer({
-  baseUrl: 'https://api.example.com',
-  cache: { staleTime: 60000 },
-})
-
-// Use anywhere
-const users = await getDataLayer().get('/users')
-const user = await getDataLayer().get('/users/:id', { path: { id: '123' } })
-```
-
-### State Management
-
-```typescript
-import { initStateLayer, getStateLayer } from '@voltakit/volta'
-
-// Initialize
-initStateLayer({ enableDevTools: true })
-
-// Create stores
-const userStore = getStateLayer().createStore('user', {
-  initialState: { name: '', email: '' },
-})
-```
-
-### Component Registration (v0.5.0+)
+### Component Registration
 
 ```typescript
 import { query, store, register } from '@voltakit/volta'
 
-const userData = query({ endpoint: '/users/:userId', params: ['userId'] })
-const userState = store({ initial: { activeTab: 'info' } })
+// Define data binding (lazy fetch)
+const userData = query({
+  endpoint: '/users/:userId',
+  params: ['userId'],
+})
 
+// Define state binding (scoped per instance)
+const userState = store({
+  initial: { activeTab: 'info' },
+})
+
+// Register component
 register('user-card', {
   type: 'data-display',
   component: () => import('./UserCard'),
   data: userData,
   state: userState,
-  theme: ['colors.primary'],
+  theme: ['colors.primary', 'colors.accent'],
 })
 ```
 
-### React Hooks
+### React Hook
 
 ```tsx
 import { react } from '@voltakit/volta'
 const { useVoltaComponent } = react
 
 function UserCard({ userId }: { userId: string }) {
-  const { data, theme, isLoading } = useVoltaComponent('user-card', {
+  const { data, theme, isLoading, refetch } = useVoltaComponent('user-card', {
     props: { userId },
   })
 
   if (isLoading) return <div>Loading...</div>
-  return <div style={{ color: theme['colors.primary'] }}>{data.name}</div>
+
+  return (
+    <div style={{ color: theme['colors.primary'] }}>
+      <h2>{data.name}</h2>
+      <button onClick={refetch}>Refresh</button>
+    </div>
+  )
 }
+```
+
+### Signal-Based Derived Stores
+
+```typescript
+import { signal } from '@sthirajs/core'
+import { createDerivedStore } from '@voltakit/volta'
+
+const count = signal(5)
+const multiplier = signal(2)
+
+const derived = createDerivedStore([count, multiplier], ([c, m]) => c * m)
+
+console.log(derived.getValue()) // 10
+count.set(10)
+console.log(derived.getValue()) // 20
 ```
 
 ## 📂 Project Structure
@@ -100,19 +99,16 @@ function UserCard({ userId }: { userId: string }) {
 ```
 src/
 ├── core/                    # Pure TypeScript (framework-agnostic)
-│   ├── api/                 # ApiClient, errors, types
-│   ├── component-registry/
+│   ├── component-registry/  # register, query, store, bindings
 │   └── types/
 │
 ├── layers/                  # Application-level contexts
-│   ├── ThemeManager/        # White-label theming
-│   ├── DataLayer/           # Data fetching with caching
-│   └── StateLayer/          # State management
-│
-├── primitives/              # Headless builder components
+│   ├── theme-manager/       # White-label theming
+│   ├── data-layer/          # Data fetching with caching
+│   └── state-layer/         # State management
 │
 ├── react/                   # React adapter
-│   ├── hooks/               # useVoltaQuery, useVoltaMutation, useVoltaStore
+│   ├── hooks/               # useVoltaComponent, useVoltaRegistry
 │   └── providers/
 │
 └── index.ts
