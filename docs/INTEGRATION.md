@@ -18,98 +18,105 @@ npm install @voltakit/volta
 // app.ts
 import { initDataLayer, initStateLayer } from '@voltakit/volta'
 
-// Initialize data layer
 initDataLayer({
-  baseUrl: process.env.API_URL || 'https://api.example.com',
-  headers: {
-    Authorization: `Bearer ${getToken()}`,
-  },
-  cache: {
-    staleTime: 5 * 60 * 1000, // 5 min
-  },
+  baseUrl: process.env.API_URL,
+  cache: { staleTime: 5 * 60 * 1000 },
 })
 
-// Initialize state layer
 initStateLayer({
   enableDevTools: process.env.NODE_ENV === 'development',
-  enableCrossTab: true,
 })
 ```
 
-### 2. Create Stores
+### 2. Register Components (v0.5.0+)
 
 ```typescript
-// stores/user.ts
-import { getStateLayer } from '@voltakit/volta'
+// components/registry.ts
+import { query, store, register } from '@voltakit/volta'
 
-export const userStore = getStateLayer().createStore(
-  'user',
-  {
-    initialState: {
-      id: null,
-      name: '',
-      email: '',
-    },
-  },
-  (set) => ({
-    setUser: (user) => set(user),
-    logout: () => set({ id: null, name: '', email: '' }),
-  })
-)
+// Define data binding
+const userData = query({
+  endpoint: '/users/:userId',
+  params: ['userId'],
+})
+
+// Define state binding
+const userState = store({
+  initial: { activeTab: 'info' },
+})
+
+// Register component
+register('user-card', {
+  type: 'data-display',
+  component: () => import('./UserCard'),
+  data: userData,
+  state: userState,
+  theme: ['colors.primary', 'colors.accent'],
+})
 ```
 
 ### 3. Use in React
 
 ```tsx
-// components/UserProfile.tsx
+// components/UserCard.tsx
 import { react } from '@voltakit/volta'
-import { userStore } from '../stores/user'
+const { useVoltaComponent } = react
 
-const { useVoltaQuery, useVoltaStore } = react
-
-export function UserProfile() {
-  const user = useVoltaStore(userStore)
-  const { data, isLoading } = useVoltaQuery(`/users/${user.id}`, {
-    enabled: !!user.id,
+export function UserCard({ userId }: { userId: string }) {
+  const { data, theme, isLoading, refetch } = useVoltaComponent('user-card', {
+    props: { userId },
+    themeManager, // optional
   })
 
   if (isLoading) return <div>Loading...</div>
 
   return (
-    <div>
-      <h1>{data?.name}</h1>
-      <p>{data?.email}</p>
+    <div style={{ color: theme['colors.primary'] }}>
+      <h2>{data.name}</h2>
+      <p>{data.email}</p>
     </div>
   )
 }
 ```
 
-## Mutations
+## Signal-Based Derived Stores
+
+Combine multiple signals into derived values:
+
+```typescript
+import { signal } from '@sthirajs/core'
+import { createDerivedStore } from '@voltakit/volta'
+
+const count = signal(0)
+const doubled = createDerivedStore([count], ([c]) => c * 2)
+
+count.set(5)
+console.log(doubled.getValue()) // 10
+```
+
+## Legacy Patterns
+
+### useVoltaQuery
 
 ```tsx
-import { react } from '@voltakit/volta'
-const { useVoltaMutation } = react
+const { data, isLoading } = useVoltaQuery('/users')
+```
 
-function CreatePost() {
-  const { mutate, isLoading, isSuccess } = useVoltaMutation('/posts', {
-    method: 'POST',
-    invalidates: ['/posts'],
-    onSuccess: (post) => {
-      console.log('Created:', post)
-    },
-  })
+### useVoltaMutation
 
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault()
-        mutate({ title: 'New Post', body: '...' })
-      }}
-    >
-      <button disabled={isLoading}>{isLoading ? 'Creating...' : 'Create Post'}</button>
-    </form>
-  )
-}
+```tsx
+const { mutate, isLoading } = useVoltaMutation('/users', {
+  method: 'POST',
+  invalidates: ['/users'],
+})
+```
+
+### useVoltaRegistry
+
+```tsx
+const { data, mutate, remove } = useVoltaRegistry<User>({
+  endpoint: `/users/${userId}`,
+})
 ```
 
 ## Theming
@@ -119,40 +126,17 @@ import { createThemeManager } from '@voltakit/volta'
 
 const themeManager = createThemeManager({
   defaultTheme: {
-    colors: { brand: '#3B82F6' },
+    colors: { primary: '#3B82F6' },
   },
-  cssVariables: (theme) => ({
-    '--brand': theme.colors.brand,
-  }),
-  cdnUrl: 'https://cdn.example.com',
 })
 
-// Load tenant theme
-await themeManager.loadTheme('tenant-123')
-
-// Toggle dark mode
-themeManager.initDarkMode()
-themeManager.toggleDarkMode()
+// Pass to useVoltaComponent for auto-wiring
 ```
 
-## Component Registry
+## Best Practices
 
-```typescript
-import { componentRegistry } from '@voltakit/volta'
-
-componentRegistry.register(
-  {
-    id: 'my-component',
-    type: 'custom',
-    schema: { type: 'object', properties: {} },
-    defaultProps: {},
-    renderMode: 'view',
-    category: 'display',
-  },
-  () => import('./components/MyComponent')
-)
-```
-
-## API Reference
-
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed API documentation.
+1. **Register components at app startup** before rendering
+2. **Use query() for data bindings** - supports path parameters
+3. **Use store() for component state** - scoped per instance
+4. **Use theme bindings** for white-label support
+5. **Prefer signals** for derived computations

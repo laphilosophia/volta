@@ -62,23 +62,36 @@ const userStore = getStateLayer().createStore('user', {
 })
 ```
 
+### Component Registration (v0.5.0+)
+
+```typescript
+import { query, store, register } from '@voltakit/volta'
+
+const userData = query({ endpoint: '/users/:userId', params: ['userId'] })
+const userState = store({ initial: { activeTab: 'info' } })
+
+register('user-card', {
+  type: 'data-display',
+  component: () => import('./UserCard'),
+  data: userData,
+  state: userState,
+  theme: ['colors.primary'],
+})
+```
+
 ### React Hooks
 
 ```tsx
 import { react } from '@voltakit/volta'
-const { useVoltaQuery, useVoltaMutation, useVoltaStore } = react
+const { useVoltaComponent } = react
 
-function UserList() {
-  const { data, isLoading } = useVoltaQuery('/users')
+function UserCard({ userId }: { userId: string }) {
+  const { data, theme, isLoading } = useVoltaComponent('user-card', {
+    props: { userId },
+  })
 
   if (isLoading) return <div>Loading...</div>
-  return (
-    <ul>
-      {data?.map((user) => (
-        <li key={user.id}>{user.name}</li>
-      ))}
-    </ul>
-  )
+  return <div style={{ color: theme['colors.primary'] }}>{data.name}</div>
 }
 ```
 
