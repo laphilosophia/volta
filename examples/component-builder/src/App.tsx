@@ -2,17 +2,16 @@
 // Component Builder - Main App
 // ============================================================================
 
-import {
-  useCreateStore,
-  useVolta,
-  useVoltaMutation,
-  useVoltaStore,
-} from '@voltakit/volta/react'
+import { useCreateStore, useVolta, useVoltaMutation, useVoltaStore } from '@voltakit/volta/react'
 import { useCallback, useEffect, useState } from 'react'
 import { Canvas } from './components/Canvas'
 import { Palette } from './components/Palette'
 import { Properties } from './components/Properties'
-import { getBuilderMeta, listBuilderComponents, registerBaseComponents } from './registry/components'
+import {
+  getBuilderMeta,
+  listBuilderComponents,
+  registerBaseComponents,
+} from './registry/components'
 
 import type { CanvasItem, HistoryState, LayoutState, SelectionState } from './types'
 
@@ -61,7 +60,7 @@ export default function App() {
   const history = useVoltaStore(historyStore!)
 
   // Derived: selected item
-  const selectedItem = layout?.items.find(i => i.id === selection?.selectedId) || null
+  const selectedItem = layout?.items.find((i) => i.id === selection?.selectedId) || null
 
   // Derived: can undo/redo
   const canUndo = (history?.past.length ?? 0) > 0
@@ -80,58 +79,73 @@ export default function App() {
     })
   }, [historyStore, layout, history])
 
-  const addItem = useCallback((componentId: string) => {
-    if (!layoutStore || !layout) return
+  const addItem = useCallback(
+    (componentId: string) => {
+      if (!layoutStore || !layout) return
 
-    pushHistory()
+      pushHistory()
 
-    const meta = getBuilderMeta(componentId)
-    const newItem: CanvasItem = {
-      id: `item-${Date.now()}`,
-      componentId,
-      props: { ...(meta?.defaultProps || {}) },
-      gridColumn: 'span 4',
-    }
+      const meta = getBuilderMeta(componentId)
+      const newItem: CanvasItem = {
+        id: `item-${Date.now()}`,
+        componentId,
+        props: { ...(meta?.defaultProps || {}) },
+        gridColumn: 'span 4',
+      }
 
-    layoutStore.setState({ items: [...layout.items, newItem] })
-  }, [layoutStore, layout, pushHistory])
+      layoutStore.setState({ items: [...layout.items, newItem] })
+    },
+    [layoutStore, layout, pushHistory]
+  )
 
-  const removeItem = useCallback((id: string) => {
-    if (!layoutStore || !layout) return
+  const removeItem = useCallback(
+    (id: string) => {
+      if (!layoutStore || !layout) return
 
-    pushHistory()
-    layoutStore.setState({ items: layout.items.filter(i => i.id !== id) })
+      pushHistory()
+      layoutStore.setState({ items: layout.items.filter((i) => i.id !== id) })
 
-    if (selection?.selectedId === id) {
-      selectionStore?.setState({ selectedId: null })
-    }
-  }, [layoutStore, layout, selection, selectionStore, pushHistory])
+      if (selection?.selectedId === id) {
+        selectionStore?.setState({ selectedId: null })
+      }
+    },
+    [layoutStore, layout, selection, selectionStore, pushHistory]
+  )
 
-  const selectItem = useCallback((id: string | null) => {
-    selectionStore?.setState({ selectedId: id })
-  }, [selectionStore])
+  const selectItem = useCallback(
+    (id: string | null) => {
+      selectionStore?.setState({ selectedId: id })
+    },
+    [selectionStore]
+  )
 
-  const updateItemProps = useCallback((id: string, props: Partial<CanvasItem['props']>) => {
-    if (!layoutStore || !layout) return
+  const updateItemProps = useCallback(
+    (id: string, props: Partial<CanvasItem['props']>) => {
+      if (!layoutStore || !layout) return
 
-    pushHistory()
-    layoutStore.setState({
-      items: layout.items.map(i =>
-        i.id === id ? { ...i, props: { ...i.props, ...props } } : i
-      ),
-    })
-  }, [layoutStore, layout, pushHistory])
+      pushHistory()
+      layoutStore.setState({
+        items: layout.items.map((i) =>
+          i.id === id ? { ...i, props: { ...i.props, ...props } } : i
+        ),
+      })
+    },
+    [layoutStore, layout, pushHistory]
+  )
 
-  const updateItemTheme = useCallback((id: string, theme: CanvasItem['theme']) => {
-    if (!layoutStore || !layout) return
+  const updateItemTheme = useCallback(
+    (id: string, theme: CanvasItem['theme']) => {
+      if (!layoutStore || !layout) return
 
-    pushHistory()
-    layoutStore.setState({
-      items: layout.items.map(i =>
-        i.id === id ? { ...i, theme: { ...i.theme, ...theme } } : i
-      ),
-    })
-  }, [layoutStore, layout, pushHistory])
+      pushHistory()
+      layoutStore.setState({
+        items: layout.items.map((i) =>
+          i.id === id ? { ...i, theme: { ...i.theme, ...theme } } : i
+        ),
+      })
+    },
+    [layoutStore, layout, pushHistory]
+  )
 
   const undo = useCallback(() => {
     if (!historyStore || !canUndo || !history) return
@@ -234,11 +248,7 @@ export default function App() {
           <button className="btn btn-secondary btn-icon" onClick={toggleTheme} title="Toggle theme">
             {isDark ? '☀️' : '🌙'}
           </button>
-          <button
-            className="btn btn-primary"
-            onClick={handleSave}
-            disabled={isSaving}
-          >
+          <button className="btn btn-primary" onClick={handleSave} disabled={isSaving}>
             {isSaving ? 'Saving...' : '💾 Save'}
           </button>
         </div>

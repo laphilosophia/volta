@@ -13,13 +13,7 @@
     "declaration": true,
     "declarationMap": true,
     "outDir": "./dist",
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ]
+    "lib": ["ES2022", "DOM", "DOM.Iterable"]
   },
-  "include": [
-    "./**/*"
-  ]
+  "include": ["./**/*"]
 }

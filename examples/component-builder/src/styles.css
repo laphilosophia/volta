@@ -24,7 +24,7 @@
   --header-height: 56px;
 }
 
-[data-theme="dark"] {
+[data-theme='dark'] {
   --bg-primary: #0f172a;
   --bg-secondary: #1e293b;
   --bg-tertiary: #334155;
@@ -41,7 +41,11 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.5;
@@ -54,8 +58,8 @@ body {
 .builder {
   display: grid;
   grid-template-areas:
-    "header header header"
-    "palette canvas properties";
+    'header header header'
+    'palette canvas properties';
   grid-template-columns: var(--sidebar-width) 1fr var(--properties-width);
   grid-template-rows: var(--header-height) 1fr;
   height: 100vh;
@@ -166,20 +170,21 @@ body {
   grid-template-columns: repeat(12, 1fr);
   gap: 16px;
   padding: 16px;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 20px,
-    var(--bg-secondary) 20px,
-    var(--bg-secondary) 21px
-  ),
-  repeating-linear-gradient(
-    90deg,
-    transparent,
-    transparent 20px,
-    var(--bg-secondary) 20px,
-    var(--bg-secondary) 21px
-  );
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 20px,
+      var(--bg-secondary) 20px,
+      var(--bg-secondary) 21px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 20px,
+      var(--bg-secondary) 20px,
+      var(--bg-secondary) 21px
+    );
   border: 2px dashed var(--border);
   border-radius: 8px;
   transition: border-color 0.15s ease;
@@ -376,7 +381,9 @@ body {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Component Previews */

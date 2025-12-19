@@ -75,9 +75,7 @@ export default function App() {
 
       <main className="main-content">
         <header className="page-header">
-          <h1 className="page-title">
-            {activeView === 'dashboard' ? 'Dashboard' : 'Customers'}
-          </h1>
+          <h1 className="page-title">{activeView === 'dashboard' ? 'Dashboard' : 'Customers'}</h1>
           <div className="header-actions">
             <button className="theme-toggle" onClick={handleToggleTheme}>
               {isDark ? '☀️' : '🌙'}
@@ -159,7 +157,9 @@ function DashboardView() {
 
       <div className="hook-demo">
         <div className="hook-card">
-          <h3>📡 <code>useVoltaQuery</code></h3>
+          <h3>
+            📡 <code>useVoltaQuery</code>
+          </h3>
           <p>Auto-caching data fetcher with loading states.</p>
           <button className="btn btn-secondary" onClick={() => refetch()} style={{ marginTop: 12 }}>
             Refetch Data
@@ -167,7 +167,9 @@ function DashboardView() {
         </div>
 
         <div className="hook-card">
-          <h3>🗄️ <code>useVoltaStore</code></h3>
+          <h3>
+            🗄️ <code>useVoltaStore</code>
+          </h3>
           <p>Reactive state store subscription.</p>
           <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
             <button
@@ -231,11 +233,7 @@ function CustomersView() {
       <div className="customers-section">
         <div className="section-header">
           <h2 className="section-title">All Customers ({customers?.length ?? 0})</h2>
-          <button
-            className="btn btn-primary"
-            onClick={handleAddCustomer}
-            disabled={isMutating}
-          >
+          <button className="btn btn-primary" onClick={handleAddCustomer} disabled={isMutating}>
             {isMutating ? 'Adding...' : '+ Add Customer'}
           </button>
         </div>
@@ -253,13 +251,13 @@ function CustomersView() {
           <tbody>
             {customers?.map((customer) => (
               <tr key={customer.id}>
-                <td><strong>{customer.name}</strong></td>
+                <td>
+                  <strong>{customer.name}</strong>
+                </td>
                 <td>{customer.company}</td>
                 <td>{customer.email}</td>
                 <td>
-                  <span className={`badge badge-${customer.status}`}>
-                    {customer.status}
-                  </span>
+                  <span className={`badge badge-${customer.status}`}>{customer.status}</span>
                 </td>
                 <td>${customer.value.toLocaleString()}</td>
               </tr>
@@ -270,7 +268,9 @@ function CustomersView() {
 
       <div className="hook-demo" style={{ marginTop: 24 }}>
         <div className="hook-card">
-          <h3>✏️ <code>useVoltaMutation</code></h3>
+          <h3>
+            ✏️ <code>useVoltaMutation</code>
+          </h3>
           <p>Handles POST/PUT/DELETE with callbacks.</p>
         </div>
       </div>

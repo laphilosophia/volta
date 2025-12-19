@@ -10,29 +10,14 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "baseUrl": ".",
     "paths": {
-      "@shared/*": [
-        "../shared/*"
-      ],
-      "@voltakit/volta/core": [
-        "../../src/core/index.ts"
-      ],
-      "@voltakit/volta/react": [
-        "../../src/react/index.ts"
-      ],
-      "@voltakit/volta/layers": [
-        "../../src/layers/index.ts"
-      ]
+      "@shared/*": ["../shared/*"],
+      "@voltakit/volta/core": ["../../src/core/index.ts"],
+      "@voltakit/volta/react": ["../../src/react/index.ts"],
+      "@voltakit/volta/layers": ["../../src/layers/index.ts"]
     }
   },
-  "include": [
-    "src/**/*",
-    "../shared/**/*"
-  ]
+  "include": ["src/**/*", "../shared/**/*"]
 }
