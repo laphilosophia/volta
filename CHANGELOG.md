@@ -5,6 +5,62 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2025-12-19
+
+### 🔧 State Bindings & Documentation Overhaul
+
+This release integrates state bindings into the React hook and provides comprehensive documentation.
+
+### Added
+
+#### State Bindings in useVoltaComponent
+
+- **Instance lifecycle management** - `createInstance()` on mount, `destroyInstance()` on unmount
+- **`state` property** in `VoltaComponentResult` - Access instance-scoped stores
+- **Automatic cleanup** - Stores destroyed when component unmounts
+
+```tsx
+const { data, state, theme } = useVoltaComponent('user-card', { props: { userId } })
+// state.counter is now available and scoped to this instance
+```
+
+#### Professional Documentation Structure
+
+- **docs/index.md** - Main documentation index with navigation
+- **docs/getting-started/** - Installation, initialization guides
+- **docs/core-concepts/** - Vanilla API, Component Registry, Signals, Lifecycle
+- **docs/layers/** - ThemeManager documentation
+- **docs/react/** - Hooks overview, useVoltaComponent detailed guide
+- **docs/guides/** - Migration guide from v0.4.x
+
+### Changed
+
+- `ARCHITECTURE.md` - Removed deprecated `getDataLayer()`/`getStateLayer()` examples
+- `INTEGRATION.md` - Updated to use `initVolta()` instead of separate layer inits
+- `README.md` - Added vanilla API examples, updated documentation links
+
+### Fixed
+
+- `instances` Map in ComponentRegistry now uses Symbol keys correctly
+- `getInstanceCount()` returns actual instance count (not symbol count)
+- `clearRegistry()` now also clears instances
+
+### Dependencies
+
+- `@sthirajs/core`: 0.3.1 → 0.3.6
+- `@sthirajs/cross-tab`: 1.0.0 → 2.0.1
+- `@sthirajs/devtools`: 1.0.0 → 2.0.0
+- `@sthirajs/fetch`: 1.0.0 → 2.0.0
+- `@sthirajs/react`: 1.0.0 → 2.0.0
+
+### Tests
+
+- 98 tests passing
+- Added `useVoltaComponent.test.tsx` with 4 new tests
+- Added `resolveStateBindings` tests in ComponentRegistry
+
+---
+
 ## [0.5.0] - 2025-12-19
 
 ### 🎯 True Builder Framework Milestone
@@ -214,6 +270,8 @@ This is the first public alpha release of Volta - a metadata-driven low-code pla
 
 ---
 
+[0.5.1]: https://github.com/laphilosophia/volta/releases/tag/v0.5.1
+[0.5.0]: https://github.com/laphilosophia/volta/releases/tag/v0.5.0
 [0.4.0]: https://github.com/laphilosophia/volta/releases/tag/v0.4.0
 [0.3.0]: https://github.com/laphilosophia/volta/releases/tag/v0.3.0
 [0.1.0-alpha.1]: https://github.com/laphilosophia/volta/releases/tag/v0.1.0-alpha.1
