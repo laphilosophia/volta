@@ -76,6 +76,9 @@ export function useVoltaComponent(
 ): VoltaComponentResult {
   const { props = {}, themeManager, skip = false } = options
 
+  // Stabilize props to prevent infinite render loops
+  const stableProps = useMemo(() => props, [JSON.stringify(props)])
+
   const [dataState, setDataState] = useState<ResolvedData>({
     data: {},
     status: 'loading',
@@ -130,7 +133,7 @@ export function useVoltaComponent(
     try {
       const result = await resolveDataBindings(
         componentKey,
-        props,
+        stableProps,
         abortControllerRef.current.signal
       )
       setDataState(result)
@@ -145,7 +148,7 @@ export function useVoltaComponent(
     } finally {
       setIsLoading(false)
     }
-  }, [componentKey, props])
+  }, [componentKey, stableProps])
 
   // Initial data fetch
   useEffect(() => {
