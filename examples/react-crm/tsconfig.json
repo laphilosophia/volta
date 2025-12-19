@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": [
+        "../shared/*"
+      ],
+      "@voltakit/volta/core": [
+        "../../src/core/index.ts"
+      ],
+      "@voltakit/volta/react": [
+        "../../src/react/index.ts"
+      ],
+      "@voltakit/volta/layers": [
+        "../../src/layers/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "../shared/**/*"
+  ]
+}

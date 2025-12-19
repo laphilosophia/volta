@@ -1,0 +1,12 @@
+{
+  "name": "volta-examples-shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "msw": "^2.7.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

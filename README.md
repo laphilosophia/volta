@@ -13,12 +13,12 @@ Volta is a **toolkit for developers who want to build low-code/no-code platforms
 
 ## 🎯 What Volta Provides
 
-| Category          | Features                                                                  |
-| ----------------- | ------------------------------------------------------------------------- |
-| **Core**          | `initVolta()`, `query()`, `mutate()`, `register()`, `store()`             |
-| **Layers**        | ThemeManager (white-label theming)                                        |
-| **Signals**       | `createDerivedStore()` with Sthira computed signals                       |
-| **React Adapter** | `useVoltaComponent`, `useVoltaRegistry`, `useVoltaQuery`, `useVoltaStore` |
+| Category          | Features                                                                                 |
+| ----------------- | ---------------------------------------------------------------------------------------- |
+| **Core**          | `initVolta()`, `query()`, `mutate()`, `register()`, `store()`                            |
+| **Layers**        | ThemeManager (white-label theming)                                                       |
+| **Signals**       | `createDerivedStore()` with Sthira computed signals                                      |
+| **React Adapter** | `@voltakit/volta/react` - `useVolta`, `useVoltaQuery`, `useVoltaStore`, `useCreateStore` |
 
 ## 📦 Installation
 
@@ -84,27 +84,42 @@ register('user-card', {
 })
 ```
 
-### React Hook
+### React Hooks
 
 ```tsx
-import { react } from '@voltakit/volta'
-const { useVoltaComponent } = react
+import { useVolta, useCreateStore, useVoltaStore } from '@voltakit/volta/react'
 
 function UserCard({ userId }: { userId: string }) {
-  const { data, state, theme, isLoading, refetch } = useVoltaComponent('user-card', {
-    props: { userId },
+  // Access global Volta state
+  const { isReady } = useVolta()
+
+  // Create or get a store lazy-loaded
+  const userStore = useCreateStore('user-settings', {
+    initialState: { theme: 'light', notifications: true },
   })
 
-  if (isLoading) return <div>Loading...</div>
+  // Subscribe to store updates
+  const settings = useVoltaStore(userStore)
+
+  if (!isReady) return <div>Initializing...</div>
 
   return (
-    <div style={{ color: theme['colors.primary'] }}>
-      <h2>{data.name}</h2>
-      <button onClick={refetch}>Refresh</button>
+    <div>
+      <h2>User Settings</h2>
+      <p>Theme: {settings?.theme}</p>
     </div>
   )
 }
 ```
+
+## 🧩 Examples
+
+Check out the `examples/` directory for full-featured demos:
+
+| Example                                               | Description                  | Features                                                                          |
+| ----------------------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------- |
+| **[React CRM](./examples/react-crm)**                 | dashboard application        | Data fetching (`useVoltaQuery`), Mutations, Theme switching                       |
+| **[Component Builder](./examples/component-builder)** | Low-code editor (Puck-style) | Drag & Drop (`react-dnd`), Component Registry, Undo/Redo History, Property Editor |
 
 ### Signal-Based Derived Stores
 

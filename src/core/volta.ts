@@ -14,6 +14,9 @@ import {
   type StoreConfig,
 } from '../layers/state-layer'
 
+// Re-export StoreConfig for external use
+export type { SthiraStore, StoreConfig }
+
 // ============================================================================
 // Types
 // ============================================================================

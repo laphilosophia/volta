@@ -9,7 +9,8 @@ export type { UseVoltaQueryOptions, UseVoltaQueryResult } from './useVoltaQuery'
 export { useVoltaMutation } from './useVoltaMutation'
 export type { UseVoltaMutationOptions, UseVoltaMutationResult } from './useVoltaMutation'
 
-// State Management Hook
+// State Management Hooks
+export { useCreateStore, useGetStore } from './useCreateStore'
 export { useVoltaStore } from './useVoltaStore'
 
 // Unified Registry Hook (v0.4.0)

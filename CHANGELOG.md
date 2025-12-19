@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2025-12-19
+
+### 🎯 React Adapter & Builder Milestone
+
+This release introduces a completely refactored React adapter and the "Component Builder" example, showcasing Volta's visual building capabilities.
+
+### Added
+
+#### New React Adapter (`@voltakit/volta/react`)
+
+- **`useVolta()`** - Simple provider access
+- **`useCreateStore()`** - Reactive store creation
+- **`useVoltaStore()`** - Store subscription hook
+- **`useVoltaQuery`** / **`useVoltaMutation`** - Data fetching hooks
+
+#### Examples
+
+- **Component Builder** - Complete low-code dashboard builder with DnD
+- **React CRM** - Full business application demo
+
+### Fixed
+
+- **Module Structure**: React adapter is now isolated in its own entry point
+- **Types**: Improved TypeScript inference for all hooks
+
+---
+
 ## [0.5.1] - 2025-12-19
 
 ### 🔧 State Bindings & Documentation Overhaul

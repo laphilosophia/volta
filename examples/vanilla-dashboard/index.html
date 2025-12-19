@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Volta Vanilla Dashboard</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="header">
+        <h1>🚀 Volta Dashboard</h1>
+        <p class="subtitle">Framework-agnostic demo • Volta v0.5.0</p>
+        <div id="status-indicator" class="status"></div>
+      </header>
+
+      <main class="main">
+        <!-- Stats Cards -->
+        <section id="stats-section" class="stats-section">
+          <h2>📊 Dashboard Statistics</h2>
+          <div id="stats-container" class="stats-grid">
+            <div class="stat-card skeleton">Loading...</div>
+          </div>
+        </section>
+
+        <!-- Users Table -->
+        <section id="users-section" class="users-section">
+          <div class="section-header">
+            <h2>👥 Users</h2>
+            <div class="actions">
+              <input type="text" id="search-input" placeholder="Search..." class="search-input" />
+              <select id="status-filter" class="filter-select">
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+              <button id="add-user-btn" class="btn btn-primary">+ New User</button>
+            </div>
+          </div>
+          <div id="users-container" class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Avatar</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="users-tbody">
+                <tr>
+                  <td colspan="6" class="loading-cell">Loading...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Component Registry Demo -->
+        <section id="registry-section" class="registry-section">
+          <div class="section-header">
+            <h2>🧩 Component Registry</h2>
+            <div class="actions">
+              <button id="register-sample-btn" class="btn btn-primary">+ Register Sample</button>
+              <button id="clear-registry-btn" class="btn btn-secondary">Clear All</button>
+            </div>
+          </div>
+          <div class="registry-grid" id="registry-container">
+            <div class="registry-empty">No components registered yet</div>
+          </div>
+          <div class="registry-info">
+            <p>Registered: <strong id="component-count">0</strong> components</p>
+            <p>Types: <span id="component-types">-</span></p>
+          </div>
+        </section>
+
+        <!-- Volta Features Demo -->
+        <section id="features-section" class="features-section">
+          <h2>⚡ Volta Features</h2>
+          <div class="features-grid">
+            <div class="feature-card">
+              <h3>🔄 Cache</h3>
+              <p>Last fetch: <span id="last-fetch">-</span></p>
+              <button id="invalidate-btn" class="btn btn-secondary">Clear Cache</button>
+            </div>
+            <div class="feature-card">
+              <h3>🌐 Network</h3>
+              <p>Status: <span id="network-status">-</span></p>
+              <p>Pending: <span id="pending-count">0</span> requests</p>
+            </div>
+            <div class="feature-card">
+              <h3>📦 Store</h3>
+              <p>UI State: <span id="store-state">-</span></p>
+              <button id="toggle-view-btn" class="btn btn-secondary">Toggle View</button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <p>
+          Built with <strong>Volta</strong> •
+          <a href="https://github.com/laphilosophia/volta" target="_blank">GitHub</a>
+        </p>
+      </footer>
+    </div>
+
+    <!-- Add User Modal -->
+    <dialog id="add-user-modal" class="modal">
+      <form id="add-user-form" class="modal-form">
+        <h3>Add New User</h3>
+        <label>
+          Name:
+          <input type="text" name="name" required />
+        </label>
+        <label>
+          Email:
+          <input type="email" name="email" required />
+        </label>
+        <label>
+          Role:
+          <select name="role">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+            <option value="viewer">Viewer</option>
+          </select>
+        </label>
+        <div class="modal-actions">
+          <button type="button" id="cancel-modal" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

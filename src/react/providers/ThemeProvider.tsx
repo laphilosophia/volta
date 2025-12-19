@@ -1,25 +1,87 @@
 // ============================================================================
-// ThemeProvider - React Provider for ThemeManager
+// ThemeProvider - React Provider for Theme Management
 // ============================================================================
+// Provides theme context to React components.
+// Can accept either a ThemeManager instance or a config to create one internally.
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import type { ThemeManager } from '../../layers/theme-manager'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import {
+  ThemeManager,
+  type ThemeManagerConfig,
+} from '../../layers/theme-manager'
 import { ThemeContext, type ThemeContextValue } from './ThemeContext'
 
-interface ThemeProviderProps<T extends object> {
-  /** ThemeManager instance */
+// ============================================================================
+// Props
+// ============================================================================
+
+interface ThemeProviderWithManagerProps<T extends object> {
+  /** ThemeManager instance (if you need to share it outside React) */
   manager: ThemeManager<T>
-  /** Children */
+  config?: never
   children: ReactNode
-  /** Initialize dark mode on mount */
   initDarkMode?: boolean
 }
 
+interface ThemeProviderWithConfigProps<T extends object> {
+  /** Theme config (ThemeProvider will create ThemeManager internally) */
+  config: ThemeManagerConfig<T>
+  manager?: never
+  children: ReactNode
+  initDarkMode?: boolean
+}
+
+export type ThemeProviderProps<T extends object> =
+  | ThemeProviderWithManagerProps<T>
+  | ThemeProviderWithConfigProps<T>
+
+// ============================================================================
+// ThemeProvider Component
+// ============================================================================
+
+/**
+ * React provider for theme management.
+ * Can be used in two ways:
+ *
+ * @example With config (recommended for React-only apps)
+ * ```tsx
+ * <ThemeProvider config={{ defaultTheme: { mode: 'light', colors: {...} } }}>
+ *   <App />
+ * </ThemeProvider>
+ * ```
+ *
+ * @example With manager (for sharing ThemeManager outside React)
+ * ```tsx
+ * const themeManager = new ThemeManager({ defaultTheme: {...} })
+ *
+ * <ThemeProvider manager={themeManager}>
+ *   <App />
+ * </ThemeProvider>
+ * ```
+ */
 export function ThemeProvider<T extends object>({
-  manager,
+  manager: externalManager,
+  config,
   children,
   initDarkMode = false,
 }: ThemeProviderProps<T>) {
+  // Create internal manager if config is provided
+  const internalManagerRef = useRef<ThemeManager<T> | null>(null)
+
+  // Get or create manager
+  const manager = useMemo(() => {
+    if (externalManager) {
+      return externalManager
+    }
+
+    // Create internal manager (only once)
+    if (config && !internalManagerRef.current) {
+      internalManagerRef.current = new ThemeManager<T>(config)
+    }
+
+    return internalManagerRef.current!
+  }, [externalManager, config])
+
   const [theme, setThemeState] = useState<T>(manager.getTheme())
   const [tenantId, setTenantId] = useState<string | undefined>(manager.getTenantId())
 
@@ -57,3 +119,10 @@ export function ThemeProvider<T extends object>({
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }
+
+// ============================================================================
+// Re-export types for convenience
+// ============================================================================
+
+export type { ThemeManagerConfig }
+

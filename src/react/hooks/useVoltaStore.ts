@@ -27,21 +27,27 @@ export function useVoltaStore<
   TState extends object,
   TActions extends object = object,
   TSelected = TState,
->(store: SthiraStore<TState, TActions>, selector?: (state: TState) => TSelected): TSelected {
+>(
+  store: SthiraStore<TState, TActions> | null,
+  selector?: (state: TState) => TSelected
+): TSelected | null {
   const subscribe = useCallback(
     (callback: () => void) => {
+      if (!store) return () => {}
       return store.subscribe(callback)
     },
     [store]
   )
 
   const getSnapshot = useCallback(() => {
+    if (!store) return null as unknown as TState
     return store.getState()
   }, [store])
 
   const state = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 
   return useMemo(() => {
+    if (!state) return null
     if (selector) {
       return selector(state)
     }
