@@ -11,24 +11,56 @@ Volta provides a **layered architecture** with clear separation between framewor
 │                    Your Application                      │
 ├─────────────────────────────────────────────────────────┤
 │                    React Adapter                         │
-│  (useVoltaComponent, useVoltaRegistry, useVoltaQuery)    │
+│  (useVoltaComponent, useVoltaRegistry, useVoltaStore)    │
 ├─────────────────────────────────────────────────────────┤
-│                       Layers                             │
+│                     Volta Core                           │
+│     (query, mutate, register, createDerivedStore)        │
+├─────────────────────────────────────────────────────────┤
+│                   Internal Layers                        │
 │       (ThemeManager, DataLayer, StateLayer)              │
-├─────────────────────────────────────────────────────────┤
-│                        Core                              │
-│  (register, query, store, createDerivedStore)            │
 ├─────────────────────────────────────────────────────────┤
 │                   @sthirajs/core                         │
 │        (signal, computed, effect, batch)                 │
 └─────────────────────────────────────────────────────────┘
 ```
 
-## Component Registry (v0.5.0+)
+## Initialization
 
-Vanilla-first component registration with data/state/theme bindings.
+All Volta features are initialized through a single entry point:
 
-### Primitives
+```typescript
+import { initVolta } from '@voltakit/volta'
+
+initVolta({
+  baseUrl: 'https://api.example.com',
+  headers: { Authorization: 'Bearer token' },
+  enableDevTools: true,
+  enableCrossTab: true,
+})
+```
+
+## Vanilla API
+
+Framework-agnostic data operations:
+
+```typescript
+import { query, mutate, invalidate } from '@voltakit/volta'
+
+// Fetch data
+const users = await query<User[]>('/users')
+const user = await query<User>('/users/:id', { path: { id: '123' } })
+
+// Mutate data
+const newUser = await mutate<User>('/users', { name: 'John' })
+await mutate('/users/123', { name: 'Updated' }, { method: 'PUT' })
+
+// Invalidate cache
+invalidate('/users')
+```
+
+## Component Registry
+
+Declarative component registration with data/state/theme bindings:
 
 ```typescript
 import { query, store, register } from '@voltakit/volta'
@@ -37,7 +69,6 @@ import { query, store, register } from '@voltakit/volta'
 const userData = query({
   endpoint: '/users/:userId',
   params: ['userId'],
-  config: { staleTime: 60000 },
 })
 
 // State binding (scoped store)
@@ -46,7 +77,7 @@ const userState = store({
 })
 
 // Register component
-const { id, status } = register('user-card', {
+register('user-card', {
   type: 'data-display',
   component: () => import('./components/UserCard'),
   data: userData,
@@ -86,9 +117,9 @@ const { tokens, unsubscribe } = resolveThemeBindings('user-card', themeManager, 
 )
 ```
 
-## Signal-Based Derived Stores (v0.5.0+)
+## Signal-Based Derived Stores
 
-Create reactive derived values using Sthira signals.
+Create reactive derived values using Sthira signals:
 
 ```typescript
 import { signal } from '@sthirajs/core'
@@ -114,55 +145,9 @@ const unsubscribe = derived.subscribe((value) => console.log(value))
 derived.destroy()
 ```
 
-### Legacy Derived Stores
+## ThemeManager
 
-For stores using getState/subscribe pattern:
-
-```typescript
-import { createLegacyDerivedStore } from '@voltakit/volta'
-
-const derived = createLegacyDerivedStore([sthiraStore1, sthiraStore2], ([s1, s2]) => ({
-  combined: s1.value + s2.value,
-}))
-```
-
-## Layers
-
-### DataLayer
-
-High-level data fetching with caching, powered by `@sthirajs/fetch`.
-
-```typescript
-import { initDataLayer, getDataLayer } from '@voltakit/volta'
-
-initDataLayer({
-  baseUrl: 'https://api.example.com',
-  cache: { staleTime: 5 * 60 * 1000 },
-})
-
-const users = await getDataLayer().get('/users')
-```
-
-### StateLayer
-
-Centralized store registry with DevTools and cross-tab sync.
-
-```typescript
-import { initStateLayer, getStateLayer } from '@voltakit/volta'
-
-initStateLayer({
-  enableDevTools: true,
-  enableCrossTab: true,
-})
-
-const userStore = getStateLayer().createStore('user', {
-  initialState: { name: '', email: '' },
-})
-```
-
-### ThemeManager
-
-Generic theming with CSS variables and multi-tenant support.
+Generic theming with CSS variables and multi-tenant support:
 
 ```typescript
 import { createThemeManager } from '@voltakit/volta'
@@ -173,20 +158,23 @@ const themeManager = createThemeManager({
     '--color-brand': theme.colors.brand,
   }),
 })
+
+// Load tenant theme from CDN
+await themeManager.loadTheme('https://cdn.example.com/themes/tenant-123.json')
 ```
 
-## React Hooks
+## React Adapter
 
-### useVoltaComponent (v0.5.0+)
+### useVoltaComponent
 
-Auto-resolve data and theme bindings for registered components.
+Auto-resolve data, state, and theme bindings for registered components:
 
 ```tsx
 import { react } from '@voltakit/volta'
 const { useVoltaComponent } = react
 
 function UserCard({ userId }: { userId: string }) {
-  const { data, theme, isLoading, error } = useVoltaComponent('user-card', {
+  const { data, state, theme, isLoading, error } = useVoltaComponent('user-card', {
     props: { userId },
     themeManager,
   })
@@ -197,9 +185,9 @@ function UserCard({ userId }: { userId: string }) {
 }
 ```
 
-### useVoltaRegistry (v0.4.0+)
+### useVoltaRegistry
 
-Unified hook for query and mutation operations.
+Unified hook for query and mutation operations:
 
 ```tsx
 const { data, mutate, remove } = useVoltaRegistry<User>({
@@ -207,9 +195,26 @@ const { data, mutate, remove } = useVoltaRegistry<User>({
 })
 ```
 
-### useVoltaQuery / useVoltaMutation / useVoltaStore
+## Lifecycle Management
 
-See previous versions for these hooks.
+Control Volta's operational state:
+
+```typescript
+import { holdVolta, resumeVolta, destroyVolta, getVoltaStatus } from '@voltakit/volta'
+
+holdVolta() // Pause operations (requests queue)
+resumeVolta() // Resume and process queue
+destroyVolta() // Cleanup all resources
+getVoltaStatus() // 'idle' | 'running' | 'held' | 'destroyed'
+```
+
+## Internal Layers
+
+> **Note**: DataLayer and StateLayer are internal implementation details. Use the Volta API (`query`, `mutate`, `createStore`) instead of accessing layers directly.
+
+- **DataLayer**: Handles HTTP requests, caching, and request queuing
+- **StateLayer**: Manages stores, devtools integration, and cross-tab sync
+- **ThemeManager**: The only layer with public API (for theming)
 
 ## Design Principles
 
@@ -218,3 +223,10 @@ See previous versions for these hooks.
 3. **Layered Architecture**: Clear separation of concerns
 4. **Type-safe**: Full TypeScript generics support
 5. **Multi-tenant Ready**: CDN-based tenant theme loading
+
+## Further Reading
+
+- [Getting Started](getting-started/installation.md)
+- [Vanilla API](core-concepts/vanilla-api.md)
+- [Component Registry](core-concepts/component-registry.md)
+- [React Hooks](react/hooks.md)

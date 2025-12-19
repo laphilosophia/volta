@@ -15,8 +15,8 @@ Volta is a **toolkit for developers who want to build low-code/no-code platforms
 
 | Category          | Features                                                                  |
 | ----------------- | ------------------------------------------------------------------------- |
-| **Core**          | `register()`, `query()`, `store()`, Component Registry                    |
-| **Layers**        | ThemeManager, DataLayer, StateLayer                                       |
+| **Core**          | `initVolta()`, `query()`, `mutate()`, `register()`, `store()`             |
+| **Layers**        | ThemeManager (white-label theming)                                        |
 | **Signals**       | `createDerivedStore()` with Sthira computed signals                       |
 | **React Adapter** | `useVoltaComponent`, `useVoltaRegistry`, `useVoltaQuery`, `useVoltaStore` |
 
@@ -29,6 +29,34 @@ npm install @voltakit/volta
 > Built on `@sthirajs/*` - all dependencies bundled!
 
 ## 🚀 Quick Start
+
+### Initialize Volta
+
+```typescript
+import { initVolta } from '@voltakit/volta'
+
+initVolta({
+  baseUrl: 'https://api.example.com',
+  enableDevTools: true,
+})
+```
+
+### Vanilla API (Framework-Agnostic)
+
+```typescript
+import { query, mutate, invalidate } from '@voltakit/volta'
+
+// Fetch data
+const users = await query<User[]>('/users')
+const user = await query<User>('/users/:id', { path: { id: '123' } })
+
+// Mutate data
+const newUser = await mutate<User>('/users', { name: 'John' })
+await mutate('/users/123', { name: 'Updated' }, { method: 'PUT' })
+
+// Invalidate cache
+invalidate('/users')
+```
 
 ### Component Registration
 
@@ -63,7 +91,7 @@ import { react } from '@voltakit/volta'
 const { useVoltaComponent } = react
 
 function UserCard({ userId }: { userId: string }) {
-  const { data, theme, isLoading, refetch } = useVoltaComponent('user-card', {
+  const { data, state, theme, isLoading, refetch } = useVoltaComponent('user-card', {
     props: { userId },
   })
 
@@ -99,13 +127,14 @@ console.log(derived.getValue()) // 20
 ```
 src/
 ├── core/                    # Pure TypeScript (framework-agnostic)
+│   ├── volta.ts             # Main API: query, mutate, lifecycle
 │   ├── component-registry/  # register, query, store, bindings
 │   └── types/
 │
 ├── layers/                  # Application-level contexts
 │   ├── theme-manager/       # White-label theming
-│   ├── data-layer/          # Data fetching with caching
-│   └── state-layer/         # State management
+│   ├── data-layer/          # Data fetching (internal)
+│   └── state-layer/         # State management (internal)
 │
 ├── react/                   # React adapter
 │   ├── hooks/               # useVoltaComponent, useVoltaRegistry
@@ -116,8 +145,12 @@ src/
 
 ## 📚 Documentation
 
+- [Getting Started](docs/getting-started/installation.md)
 - [Architecture Overview](docs/ARCHITECTURE.md)
-- [Integration Guide](docs/INTEGRATION.md)
+- [Vanilla API](docs/core-concepts/vanilla-api.md)
+- [Component Registry](docs/core-concepts/component-registry.md)
+- [React Hooks](docs/react/hooks.md)
+- [Migration Guide (v0.4.x → v0.5.0)](docs/guides/migration-v04-v05.md)
 
 ## 🛠️ Development
 
@@ -125,7 +158,7 @@ src/
 npm install    # Install dependencies
 npm run build  # Build
 npm run lint   # Lint
-npm run test   # Test (91 tests)
+npm run test   # Test (100+ tests)
 ```
 
 ## 🤝 Contributing

@@ -4,8 +4,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
+  createInstance,
+  destroyInstance,
   getComponent,
   resolveDataBindings,
+  resolveStateBindings,
   resolveThemeBindings,
   type ComponentDefinition,
   type ResolvedData,
@@ -21,6 +24,8 @@ export interface VoltaComponentResult {
   data: Record<string, unknown>
   /** Resolved theme tokens */
   theme: Record<string, unknown>
+  /** Resolved state stores (scoped to instance) */
+  state: Record<string, unknown>
   /** Component definition */
   definition: ComponentDefinition | undefined
   /** Loading state */
@@ -50,7 +55,7 @@ export interface UseVoltaComponentOptions {
  * @example
  * ```tsx
  * function UserCard({ userId }: { userId: string }) {
- *   const { data, theme, isLoading } = useVoltaComponent('user-card', {
+ *   const { data, theme, state, isLoading } = useVoltaComponent('user-card', {
  *     props: { userId },
  *     themeManager
  *   })
@@ -76,13 +81,43 @@ export function useVoltaComponent(
     status: 'loading',
   })
   const [themeTokens, setThemeTokens] = useState<Record<string, unknown>>({})
+  const [stateBindings, setStateBindings] = useState<Record<string, unknown>>({})
   const [isLoading, setIsLoading] = useState(!skip)
 
   const abortControllerRef = useRef<AbortController | null>(null)
   const themeUnsubscribeRef = useRef<(() => void) | null>(null)
+  // Track instance ID to avoid recreating on every render, but recreate if componentKey changes
+  const instanceIdRef = useRef<symbol | null>(null)
 
   // Get component definition
   const definition = useMemo(() => getComponent(componentKey), [componentKey])
+
+  // Manage Instance Lifecycle & State Bindings
+  useEffect(() => {
+    // 1. Create instance (equivalent to mounting)
+    const instance = createInstance(componentKey)
+    if (!instance) return
+
+    instanceIdRef.current = instance.id
+
+    // 2. Resolve state bindings (async)
+    // We don't block the UI for state creation as it's usually fast
+    resolveStateBindings(componentKey, instance.id)
+      .then((bindings) => {
+        setStateBindings(bindings)
+      })
+      .catch((err) => {
+        console.error(`Failed to resolve state bindings for ${componentKey}:`, err)
+      })
+
+    // 3. Cleanup (destroy instance on unmount)
+    return () => {
+      if (instanceIdRef.current) {
+        destroyInstance(instanceIdRef.current)
+        instanceIdRef.current = null
+      }
+    }
+  }, [componentKey])
 
   // Fetch data bindings
   const fetchData = useCallback(async () => {
@@ -110,7 +145,7 @@ export function useVoltaComponent(
     } finally {
       setIsLoading(false)
     }
-  }, [componentKey, JSON.stringify(props)])
+  }, [componentKey, props])
 
   // Initial data fetch
   useEffect(() => {
@@ -147,6 +182,7 @@ export function useVoltaComponent(
   return {
     data: dataState.data,
     theme: themeTokens,
+    state: stateBindings,
     definition,
     isLoading,
     error: dataState.error,

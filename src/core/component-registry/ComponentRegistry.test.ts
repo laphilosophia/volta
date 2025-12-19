@@ -236,6 +236,75 @@ describe('ComponentRegistry', () => {
     })
   })
 
+  describe('resolveStateBindings', () => {
+    it('should resolve state stores for component instance', async () => {
+      const { resolveStateBindings } = await import('./ComponentRegistry')
+
+      // Mock createStore from volta
+      vi.mock('../volta', async (importOriginal) => {
+        const actual = await importOriginal<Record<string, unknown>>()
+        return {
+          ...actual,
+          createStore: vi.fn((name: string, config: { initialState: unknown }) => ({
+            name,
+            config,
+            getState: () => config.initialState,
+          })),
+        }
+      })
+
+      const counterStore = store({ initial: { count: 0 } })
+
+      register('stateful-comp', {
+        type: 'widget',
+        component: null,
+        state: {
+          counter: counterStore,
+        },
+      })
+
+      const instanceId = Symbol('instance-1')
+      const bindings = await resolveStateBindings('stateful-comp', instanceId)
+
+      expect(bindings).toHaveProperty('counter')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((bindings['counter'] as any).config.initialState).toEqual({ count: 0 })
+    })
+
+    it('should handle single store definition', async () => {
+      const { resolveStateBindings } = await import('./ComponentRegistry')
+
+      const simpleStore = store({ initial: { value: 'test' } })
+
+      register('single-store-comp', {
+        type: 'widget',
+        component: null,
+        state: simpleStore,
+      })
+
+      const instanceId = Symbol('instance-2')
+      const bindings = await resolveStateBindings('single-store-comp', instanceId)
+
+      expect(bindings).toHaveProperty('default')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((bindings['default'] as any).config.initialState).toEqual({ value: 'test' })
+    })
+
+    it('should return empty object if no state defined', async () => {
+      const { resolveStateBindings } = await import('./ComponentRegistry')
+
+      register('stateless-comp', {
+        type: 'static',
+        component: null,
+      })
+
+      const instanceId = Symbol('instance-3')
+      const bindings = await resolveStateBindings('stateless-comp', instanceId)
+
+      expect(bindings).toEqual({})
+    })
+  })
+
   describe('createDerivedStore (signal-based)', () => {
     it('should compute derived value from signal sources', async () => {
       const { signal } = await import('@sthirajs/core')

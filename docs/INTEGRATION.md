@@ -12,23 +12,21 @@ npm install @voltakit/volta
 
 ## Quick Setup
 
-### 1. Initialize Layers
+### 1. Initialize Volta
 
 ```typescript
-// app.ts
-import { initDataLayer, initStateLayer } from '@voltakit/volta'
+// app.ts or main.ts
+import { initVolta } from '@voltakit/volta'
 
-initDataLayer({
+initVolta({
   baseUrl: process.env.API_URL,
   cache: { staleTime: 5 * 60 * 1000 },
-})
-
-initStateLayer({
   enableDevTools: process.env.NODE_ENV === 'development',
+  enableCrossTab: true,
 })
 ```
 
-### 2. Register Components (v0.5.0+)
+### 2. Register Components
 
 ```typescript
 // components/registry.ts
@@ -63,7 +61,7 @@ import { react } from '@voltakit/volta'
 const { useVoltaComponent } = react
 
 export function UserCard({ userId }: { userId: string }) {
-  const { data, theme, isLoading, refetch } = useVoltaComponent('user-card', {
+  const { data, state, theme, isLoading, refetch } = useVoltaComponent('user-card', {
     props: { userId },
     themeManager, // optional
   })
@@ -77,6 +75,29 @@ export function UserCard({ userId }: { userId: string }) {
     </div>
   )
 }
+```
+
+## Vanilla API (Without Registration)
+
+For simpler cases, use the vanilla API directly:
+
+```typescript
+import { query, mutate, invalidate } from '@voltakit/volta'
+
+// Fetch data
+const users = await query<User[]>('/users')
+
+// Create user
+const newUser = await mutate<User>('/users', { name: 'John' })
+
+// Update user
+await mutate('/users/123', { name: 'Jane' }, { method: 'PUT' })
+
+// Delete user
+await mutate('/users/123', undefined, { method: 'DELETE' })
+
+// Invalidate cache
+invalidate('/users')
 ```
 
 ## Signal-Based Derived Stores
@@ -94,28 +115,45 @@ count.set(5)
 console.log(doubled.getValue()) // 10
 ```
 
-## Legacy Patterns
+## React Hooks
 
-### useVoltaQuery
+### useVoltaComponent
 
-```tsx
-const { data, isLoading } = useVoltaQuery('/users')
-```
-
-### useVoltaMutation
+Primary hook for registered components:
 
 ```tsx
-const { mutate, isLoading } = useVoltaMutation('/users', {
-  method: 'POST',
-  invalidates: ['/users'],
+const { data, state, theme, isLoading, error, refetch } = useVoltaComponent('user-card', {
+  props: { userId: '123' },
+  themeManager,
 })
 ```
 
 ### useVoltaRegistry
 
+Direct query/mutation without registration:
+
 ```tsx
-const { data, mutate, remove } = useVoltaRegistry<User>({
+const { data, mutate, remove, refetch } = useVoltaRegistry<User>({
   endpoint: `/users/${userId}`,
+})
+```
+
+### useVoltaQuery
+
+Simple data fetching:
+
+```tsx
+const { data, isLoading, error } = useVoltaQuery<User[]>('/users')
+```
+
+### useVoltaMutation
+
+Data mutations:
+
+```tsx
+const { mutate, isLoading, error } = useVoltaMutation<User>('/users', {
+  method: 'POST',
+  invalidates: ['/users'],
 })
 ```
 
@@ -128,15 +166,28 @@ const themeManager = createThemeManager({
   defaultTheme: {
     colors: { primary: '#3B82F6' },
   },
+  cssVariables: (theme) => ({
+    '--color-primary': theme.colors.primary,
+  }),
 })
 
 // Pass to useVoltaComponent for auto-wiring
+const { theme } = useVoltaComponent('user-card', { themeManager })
 ```
 
 ## Best Practices
 
-1. **Register components at app startup** before rendering
-2. **Use query() for data bindings** - supports path parameters
-3. **Use store() for component state** - scoped per instance
-4. **Use theme bindings** for white-label support
-5. **Prefer signals** for derived computations
+1. **Initialize once at app startup** - Call `initVolta()` before any component renders
+2. **Register components early** - Register before hooks try to use them
+3. **Use query() for data bindings** - Supports path parameters and caching
+4. **Use store() for component state** - Scoped per instance, prevents cross-talk
+5. **Use theme bindings** - Enable white-label support from day one
+6. **Prefer signals** - Use `createDerivedStore()` for computed values
+
+## Further Reading
+
+- [Architecture Overview](ARCHITECTURE.md)
+- [Vanilla API](core-concepts/vanilla-api.md)
+- [Component Registry](core-concepts/component-registry.md)
+- [React Hooks](react/hooks.md)
+- [Migration Guide](guides/migration-v04-v05.md)

@@ -164,6 +164,7 @@ export function unregister(key: string): boolean {
  */
 export function clearRegistry(): void {
   definitions.clear()
+  instances.clear()
   symbolRegistry.clear()
 }
 
@@ -188,10 +189,7 @@ export function createInstance(key: string, parentId?: symbol): ComponentInstanc
     createdAt: Date.now(),
   }
 
-  // Use wrapper object for WeakMap
-  const wrapper = { symbol: id }
-  // @ts-expect-error - WeakMap key workaround
-  instances.set(wrapper, instance)
+  instances.set(id, instance)
   symbolRegistry.add(id)
 
   return instance
@@ -201,7 +199,7 @@ export function createInstance(key: string, parentId?: symbol): ComponentInstanc
  * Get instance count (for debugging)
  */
 export function getInstanceCount(): number {
-  return symbolRegistry.size
+  return instances.size
 }
 
 // ============================================================================
