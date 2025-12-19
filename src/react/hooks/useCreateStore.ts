@@ -8,7 +8,7 @@
 
 import { useMemo } from 'react'
 import { createStore, getStore, hasStore, type StoreConfig } from '../../core/volta'
-import { useVolta } from '../providers/VoltaProvider'
+import { useVolta } from '../providers/VoltaContext'
 
 /**
  * React hook for creating Volta stores.

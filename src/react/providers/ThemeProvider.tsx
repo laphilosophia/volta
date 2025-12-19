@@ -4,11 +4,8 @@
 // Provides theme context to React components.
 // Can accept either a ThemeManager instance or a config to create one internally.
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import {
-  ThemeManager,
-  type ThemeManagerConfig,
-} from '../../layers/theme-manager'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { ThemeManager, type ThemeManagerConfig } from '../../layers/theme-manager'
 import { ThemeContext, type ThemeContextValue } from './ThemeContext'
 
 // ============================================================================
@@ -24,7 +21,13 @@ interface ThemeProviderWithManagerProps<T extends object> {
 }
 
 interface ThemeProviderWithConfigProps<T extends object> {
-  /** Theme config (ThemeProvider will create ThemeManager internally) */
+  /**
+   * Theme config (ThemeProvider will create ThemeManager internally)
+   *
+   * **IMPORTANT**: This should be a stable reference (defined outside component
+   * or memoized with useMemo). Changing the config reference will create a new
+   * ThemeManager and reset theme state.
+   */
   config: ThemeManagerConfig<T>
   manager?: never
   children: ReactNode
@@ -45,7 +48,10 @@ export type ThemeProviderProps<T extends object> =
  *
  * @example With config (recommended for React-only apps)
  * ```tsx
- * <ThemeProvider config={{ defaultTheme: { mode: 'light', colors: {...} } }}>
+ * // Define config outside component or use useMemo
+ * const themeConfig = { defaultTheme: { mode: 'light', colors: {...} } }
+ *
+ * <ThemeProvider config={themeConfig}>
  *   <App />
  * </ThemeProvider>
  * ```
@@ -65,21 +71,17 @@ export function ThemeProvider<T extends object>({
   children,
   initDarkMode = false,
 }: ThemeProviderProps<T>) {
-  // Create internal manager if config is provided
-  const internalManagerRef = useRef<ThemeManager<T> | null>(null)
-
   // Get or create manager
   const manager = useMemo(() => {
     if (externalManager) {
       return externalManager
     }
 
-    // Create internal manager (only once)
-    if (config && !internalManagerRef.current) {
-      internalManagerRef.current = new ThemeManager<T>(config)
+    if (config) {
+      return new ThemeManager<T>(config)
     }
 
-    return internalManagerRef.current!
+    throw new Error('ThemeProvider requires either a manager or a config')
   }, [externalManager, config])
 
   const [theme, setThemeState] = useState<T>(manager.getTheme())
@@ -117,7 +119,11 @@ export function ThemeProvider<T extends object>({
     [theme, tenantId, manager]
   )
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  return (
+    <ThemeContext.Provider value={value as unknown as ThemeContextValue<object>}>
+      {children}
+    </ThemeContext.Provider>
+  )
 }
 
 // ============================================================================
@@ -125,4 +131,3 @@ export function ThemeProvider<T extends object>({
 // ============================================================================
 
 export type { ThemeManagerConfig }
-

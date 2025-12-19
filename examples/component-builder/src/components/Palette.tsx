@@ -2,6 +2,7 @@
 // Palette Component
 // ============================================================================
 
+import type { Ref } from 'react'
 import { useDrag } from 'react-dnd'
 import { listBuilderComponents } from '../registry/components'
 
@@ -17,13 +18,7 @@ export function Palette({ onAddItem }: PaletteProps) {
       <h3 className="palette-title">Components</h3>
       <div className="palette-grid">
         {components.map(({ key, meta }) => (
-          <PaletteItem
-            key={key}
-            id={key}
-            name={meta.name}
-            icon={meta.icon}
-            onAddItem={onAddItem}
-          />
+          <PaletteItem key={key} id={key} name={meta.name} icon={meta.icon} onAddItem={onAddItem} />
         ))}
       </div>
     </div>
@@ -45,7 +40,7 @@ function PaletteItem({ id, name, icon, onAddItem }: PaletteItemProps) {
   const [{ isDragging }, drag] = useDrag({
     type: 'component',
     item: { componentId: id },
-    end: (item, monitor) => {
+    end: (_item, monitor) => {
       if (monitor.didDrop()) {
         onAddItem(id)
       }
@@ -57,7 +52,7 @@ function PaletteItem({ id, name, icon, onAddItem }: PaletteItemProps) {
 
   return (
     <div
-      ref={drag as any}
+      ref={drag as unknown as Ref<HTMLDivElement>}
       className={`palette-item ${isDragging ? 'dragging' : ''}`}
       onClick={() => onAddItem(id)}
     >

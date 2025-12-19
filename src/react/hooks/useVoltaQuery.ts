@@ -3,7 +3,7 @@
 // Wraps the vanilla query() API for React
 // ============================================================================
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { query, type QueryOptions as VoltaQueryOptions } from '../../core/volta'
 
 /**
@@ -84,8 +84,8 @@ export function useVoltaQuery<T>(
   const mountedRef = useRef(true)
   const abortControllerRef = useRef<AbortController | null>(null)
 
-  // Create stable key from options for dependency tracking
-  const optionsKey = JSON.stringify({ path, retry, timeout })
+  // Memoize options to create stable references for useCallback
+  const memoizedOptions = useMemo(() => ({ path, retry, timeout }), [path, retry, timeout])
 
   const fetchData = useCallback(async () => {
     if (!enabled) return
@@ -99,9 +99,9 @@ export function useVoltaQuery<T>(
     try {
       // Use vanilla query() API
       const data = await query<T>(endpoint, {
-        path,
-        retry,
-        timeout,
+        path: memoizedOptions.path,
+        retry: memoizedOptions.retry,
+        timeout: memoizedOptions.timeout,
         signal: abortControllerRef.current.signal,
       })
 
@@ -129,8 +129,7 @@ export function useVoltaQuery<T>(
         }))
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [endpoint, enabled, optionsKey])
+  }, [endpoint, enabled, memoizedOptions])
 
   // Initial fetch and refetch on dependency changes
   useEffect(() => {

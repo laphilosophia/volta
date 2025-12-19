@@ -2,7 +2,7 @@
 // Canvas Component
 // ============================================================================
 
-import { getComponent } from '@voltakit/volta/core'
+import type { LegacyRef } from 'react'
 import { useDrop } from 'react-dnd'
 import type { CanvasItem } from '../types'
 import { ComponentPreview } from './ComponentPreview'
@@ -29,7 +29,7 @@ export function Canvas({ items, selectedId, onSelectItem, onRemoveItem, onAddIte
   return (
     <div className="canvas">
       <div
-        ref={drop as any}
+        ref={drop as unknown as LegacyRef<HTMLDivElement>}
         className={`canvas-drop-zone ${isOver ? 'is-over' : ''}`}
         onClick={() => onSelectItem(null)}
       >
@@ -72,8 +72,6 @@ interface CanvasItemComponentProps {
 }
 
 function CanvasItemComponent({ item, isSelected, onSelect, onRemove }: CanvasItemComponentProps) {
-  const config = getComponent(item.componentId)
-
   // Custom theme styles
   const customStyles: React.CSSProperties = {
     gridColumn: item.gridColumn,

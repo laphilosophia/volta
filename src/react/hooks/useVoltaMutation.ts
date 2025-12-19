@@ -3,7 +3,7 @@
 // Wraps the vanilla mutate() API for React
 // ============================================================================
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { mutate, type MutateOptions } from '../../core/volta'
 
 /**
@@ -100,6 +100,14 @@ export function useVoltaMutation<T, V = unknown>(
   })
 
   const mountedRef = useRef(true)
+
+  // Cleanup on unmount
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
 
   const reset = useCallback(() => {
     setState({

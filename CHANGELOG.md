@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.3] - 2025-12-20
+
+### 🔧 Code Quality Improvements
+
+- **VoltaProvider**: Refactored with lazy `useState` initializer pattern (no more `setState` in effects)
+- **VoltaContext**: Separated from provider for React Fast Refresh compliance
+- **ThemeProvider**: Added stable config documentation
+- **useVoltaQuery**: Fixed dependency array with `useMemo` pattern
+- **useVoltaMutation**: Added proper cleanup effect for `mountedRef`
+- **ThemeContext**: Replaced `any` with `object` constraint
+
+### 🐛 Fixes
+
+- Removed all `eslint-disable` directives with proper architectural fixes
+- Fixed type assertions in theme context system
+
+---
+
+## [0.6.2] - 2025-12-19
+
+### 🐛 Fixes
+
+- Fixed build failing lint errors (refs in render, explicit any).
+- Resolved Fast Refresh linter rules in `VoltaProvider`.
+
+---
+
 ## [0.6.1] - 2025-12-19
 
 ### 🐛 Fixes

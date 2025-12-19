@@ -23,5 +23,4 @@ export interface ThemeContextValue<T extends object> {
   tenantId?: string
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const ThemeContext = createContext<ThemeContextValue<any> | undefined>(undefined)
+export const ThemeContext = createContext<ThemeContextValue<object> | undefined>(undefined)

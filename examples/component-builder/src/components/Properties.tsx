@@ -58,7 +58,7 @@ export function Properties({ item, onUpdateProps, onUpdateTheme, onRemove }: Pro
         <select
           className="property-input"
           value={item.gridColumn}
-          onChange={(e) => onUpdateProps(item.id, { gridColumn: e.target.value } as any)}
+          onChange={(e) => onUpdateProps(item.id, { gridColumn: e.target.value })}
         >
           <option value="span 3">3 columns (25%)</option>
           <option value="span 4">4 columns (33%)</option>
@@ -69,7 +69,9 @@ export function Properties({ item, onUpdateProps, onUpdateTheme, onRemove }: Pro
       </div>
 
       {/* Theme overrides */}
-      <h4 className="properties-title" style={{ marginTop: 24 }}>Theme Override</h4>
+      <h4 className="properties-title" style={{ marginTop: 24 }}>
+        Theme Override
+      </h4>
 
       <div className="property-group">
         <label className="property-label">Primary Color</label>

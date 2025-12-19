@@ -7,32 +7,13 @@
 // - SSR (server-side rendering)
 // - Concurrent rendering
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react'
-import {
-  destroyVolta,
-  initVolta,
-  isVoltaReady,
-  type VoltaConfig,
-} from '../../core/volta'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { destroyVolta, initVolta, isVoltaReady, type VoltaConfig } from '../../core/volta'
+import { VoltaContext, type VoltaContextValue } from './VoltaContext'
 
 // ============================================================================
 // Types
 // ============================================================================
-
-export interface VoltaContextValue {
-  /** Whether Volta has been initialized and is ready */
-  isReady: boolean
-  /** Current Volta configuration (if initialized) */
-  config: VoltaConfig | null
-}
 
 export interface VoltaProviderProps {
   /** Volta configuration */
@@ -48,10 +29,43 @@ export interface VoltaProviderProps {
 }
 
 // ============================================================================
-// Context
+// Module-level tracking
 // ============================================================================
 
-const VoltaContext = createContext<VoltaContextValue | null>(null)
+// Track initialization at module level to handle HMR correctly
+// This is intentional - Volta is a singleton, so tracking should be too
+let voltaInitializedByProvider = false
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
+/**
+ * Synchronously initialize Volta if not already ready.
+ * Returns true if Volta is ready (either freshly initialized or already running).
+ */
+function ensureVoltaInitialized(config: VoltaConfig): boolean {
+  // SSR guard
+  if (typeof window === 'undefined') {
+    return false
+  }
+
+  if (isVoltaReady()) {
+    return true
+  }
+
+  try {
+    initVolta(config)
+    voltaInitializedByProvider = true
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[VoltaProvider] Initialized Volta')
+    }
+    return true
+  } catch (error) {
+    console.error('[VoltaProvider] Failed to initialize Volta:', error)
+    return false
+  }
+}
 
 // ============================================================================
 // VoltaProvider Component
@@ -70,75 +84,32 @@ const VoltaContext = createContext<VoltaContextValue | null>(null)
  * </VoltaProvider>
  * ```
  */
-export function VoltaProvider({
-  config,
-  children,
-  destroyOnUnmount = false,
-}: VoltaProviderProps) {
-  const [isReady, setIsReady] = useState(false)
+export function VoltaProvider({ config, children, destroyOnUnmount = false }: VoltaProviderProps) {
+  // Lazy initialization: compute initial state synchronously during first render
+  // This avoids the anti-pattern of calling setState inside useEffect
+  const [isReady] = useState(() => ensureVoltaInitialized(config))
 
-  // Track if this is the first mount (for StrictMode)
-  const mountCountRef = useRef(0)
-  // Track if we've initialized (for HMR)
-  const initializedByUsRef = useRef(false)
-
+  // Handle HMR: if config changes, we may need to re-initialize
   useEffect(() => {
-    mountCountRef.current += 1
-
-    // SSR guard
-    if (typeof window === 'undefined') {
-      return
+    if (!isVoltaReady() && typeof window !== 'undefined') {
+      ensureVoltaInitialized(config)
     }
+  }, [config])
 
-    // Initialize Volta if not already ready
-    // This handles both fresh start and HMR scenarios
-    if (!isVoltaReady()) {
-      try {
-        initVolta(config)
-        initializedByUsRef.current = true
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        setIsReady(true)
-
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[VoltaProvider] Initialized Volta')
-        }
-      } catch (error) {
-        console.error('[VoltaProvider] Failed to initialize Volta:', error)
-      }
-    } else {
-      // Volta already running (HMR or re-mount in StrictMode)
-      // Just mark as ready without re-initializing
-      // Just mark as ready without re-initializing
-      setIsReady(true)
-
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[VoltaProvider] Volta already ready, skipping init')
-      }
-    }
-
-    // Cleanup function
+  // Cleanup on unmount (only if destroyOnUnmount is true)
+  useEffect(() => {
     return () => {
-      // Only destroy if destroyOnUnmount is true and we initialized Volta
-      // Note: In StrictMode, this runs on first unmount, but Volta stays running
-      // because the second mount will see isVoltaReady() === true
-      if (destroyOnUnmount && initializedByUsRef.current) {
-        // Use a flag to check if we should actually destroy
-        // (in case component remounts quickly in StrictMode)
-        const shouldDestroy = true //mountCountRef.current === 1
-
-        if (shouldDestroy && isVoltaReady()) {
-          destroyVolta()
-          initializedByUsRef.current = false
-
-          if (process.env.NODE_ENV === 'development') {
-            console.log('[VoltaProvider] Destroyed Volta')
-          }
+      if (destroyOnUnmount && voltaInitializedByProvider && isVoltaReady()) {
+        destroyVolta()
+        voltaInitializedByProvider = false
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[VoltaProvider] Destroyed Volta')
         }
       }
     }
-  }, [config, destroyOnUnmount]) // config is dependency
+  }, [destroyOnUnmount])
 
-  // Stable config reference
+  // Stable config reference for context
   const stableConfig = useMemo(() => config, [config])
 
   // Stable context value to prevent unnecessary re-renders
@@ -150,45 +121,5 @@ export function VoltaProvider({
     [isReady, stableConfig]
   )
 
-  return (
-    <VoltaContext.Provider value={contextValue}>
-      {children}
-    </VoltaContext.Provider>
-  )
+  return <VoltaContext.Provider value={contextValue}>{children}</VoltaContext.Provider>
 }
-
-// ============================================================================
-// useVolta Hook
-// ============================================================================
-
-/**
- * Hook to access Volta context.
- * Must be used within a VoltaProvider.
- *
- * @example
- * ```tsx
- * function MyComponent() {
- *   const { isReady, config } = useVolta()
- *
- *   if (!isReady) return <Loading />
- *
- *   return <div>Base URL: {config?.baseUrl}</div>
- * }
- * ```
- */
-export function useVolta(): VoltaContextValue {
-  const context = useContext(VoltaContext)
-
-  if (context === null) {
-    throw new Error('useVolta must be used within a VoltaProvider')
-  }
-
-  return context
-}
-
-// ============================================================================
-// Export Context for advanced use cases
-// ============================================================================
-
-export { VoltaContext }
-

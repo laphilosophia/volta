@@ -31,7 +31,7 @@ export function ComponentPreview({ componentId, props, theme }: ComponentPreview
           <table className="table-preview">
             <thead>
               <tr>
-                {(props.columns as string[] || ['Col 1', 'Col 2']).map((col, i) => (
+                {((props.columns as string[]) || ['Col 1', 'Col 2']).map((col, i) => (
                   <th key={i}>{col}</th>
                 ))}
               </tr>
@@ -68,23 +68,22 @@ export function ComponentPreview({ componentId, props, theme }: ComponentPreview
 
     case 'text-block':
       return (
-        <p style={{ fontSize: props.fontSize as string || '1rem' }}>
-          {props.content as string}
-        </p>
+        <p style={{ fontSize: (props.fontSize as string) || '1rem' }}>{props.content as string}</p>
       )
 
-    case 'header-block':
+    case 'header-block': {
       const level = (props.level as string) || 'h2'
       if (level === 'h1') return <h1 style={{ color: primaryColor }}>{props.title as string}</h1>
       if (level === 'h3') return <h3 style={{ color: primaryColor }}>{props.title as string}</h3>
       return <h2 style={{ color: primaryColor }}>{props.title as string}</h2>
+    }
 
     case 'spacer':
-      return <div style={{ height: props.height as string || '24px' }} />
+      return <div style={{ height: (props.height as string) || '24px' }} />
 
     case 'card-container':
       return (
-        <div style={{ padding: props.padding as string || '16px' }}>
+        <div style={{ padding: (props.padding as string) || '16px' }}>
           <div style={{ fontWeight: 600, marginBottom: 8 }}>{props.title as string}</div>
           <div style={{ color: 'var(--text-muted)' }}>Card content area</div>
         </div>

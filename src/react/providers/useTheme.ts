@@ -16,7 +16,7 @@ export function useTheme<T extends object>(): ThemeContextValue<T> {
     throw new Error('useTheme must be used within a ThemeProvider')
   }
 
-  return context as ThemeContextValue<T>
+  return context as unknown as ThemeContextValue<T>
 }
 
 /**
